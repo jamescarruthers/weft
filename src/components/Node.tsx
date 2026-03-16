@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { NodeState } from '../types';
 import { theme, stripeColor } from '../theme/catppuccin-frappe';
 import { useCanvasStore } from '../store/canvasStore';
@@ -28,6 +28,19 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
   const dragRef = useRef<{ startX: number; startY: number; nodeX: number; nodeY: number } | null>(null);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState(node.title);
+
+  // Map variable names to their graph series color
+  const graphColorMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const row of node.parsedRows) {
+      if (row.pragmas.graphs) {
+        row.pragmas.graphs.forEach((g: { y: string }, gi: number) => {
+          map.set(g.y, getSeriesColor(gi));
+        });
+      }
+    }
+    return map;
+  }, [node.parsedRows]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('.node-interactive')) return;
@@ -208,7 +221,20 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
             return (
               <React.Fragment key={i}>
                 {i > 0 && <div style={{ height: '1px', background: theme.surface0 }} />}
-                <div className="node-interactive">{renderRow(row, i)}</div>
+                <div className="node-interactive" style={{ position: 'relative' }}>
+                  {renderRow(row, i)}
+                  {graphColorMap.has(row.name) && (
+                    <div style={{
+                      position: 'absolute',
+                      left: '7px',
+                      top: '9px',
+                      width: '5px',
+                      height: '5px',
+                      borderRadius: '50%',
+                      background: graphColorMap.get(row.name),
+                    }} />
+                  )}
+                </div>
                 {hist && hist.length >= 2 && (
                   <div style={{ padding: '0 10px 2px 16px' }}>
                     <Sparkline history={hist} width={node.width - 32} height={14} />

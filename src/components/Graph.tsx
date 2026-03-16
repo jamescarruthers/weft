@@ -156,27 +156,6 @@ export const Graph: React.FC<Props> = ({ series, width, height, xLabel }) => {
         );
       })}
 
-      {/* Legend (if multiple series) */}
-      {series.length > 1 && series.map((s, si) => (
-        <g key={`legend${si}`}>
-          <line
-            x1={PADDING.left + 4}
-            y1={PADDING.top + 6 + si * 10}
-            x2={PADDING.left + 14}
-            y2={PADDING.top + 6 + si * 10}
-            stroke={s.color} strokeWidth={1.5}
-          />
-          <text
-            x={PADDING.left + 17}
-            y={PADDING.top + 9 + si * 10}
-            fill={theme.subtext0} fontSize={7}
-            fontFamily="'JetBrains Mono', monospace"
-          >
-            {s.label}
-          </text>
-        </g>
-      ))}
-
       <defs>
         <clipPath id={clipId}>
           <rect x={PADDING.left} y={PADDING.top} width={plotW} height={plotH} />

@@ -368,21 +368,54 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       try {
         // Build the code and execute
         const symbolsWritten: string[] = [];
+        const interactiveVars = new Map<string, any>();
         for (const row of node.parsedRows) {
           if (row.name && !row.name.startsWith('_expr_') && !row.name.startsWith('_block_')) {
-            // If row has a user-set currentValue (interactive), use it
+            // If row has a user-set currentValue (interactive), inject it into scope
             if ((row.kind === 'var' || row.kind === 'let') && row.currentValue !== undefined && row.initialValue !== undefined) {
+              interactiveVars.set(row.name, row.currentValue);
               scope[row.name] = row.currentValue;
             }
             symbolsWritten.push(row.name);
           }
         }
 
+        // Build executable code: for interactive vars, replace their
+        // initializer so they read from scope instead of re-initializing.
+        // Process line by line to safely handle trailing comments.
+        const lines = node.code.split('\n');
+        const execLines: string[] = [];
+        for (const line of lines) {
+          let replaced = false;
+          for (const [varName, varValue] of interactiveVars) {
+            // Match: var/let varName = <something>
+            const re = new RegExp(`^(\\s*(?:var|let)\\s+)${varName}(\\s*=\\s*)(.+)$`);
+            const m = line.match(re);
+            if (m) {
+              // Replace the initializer value, keep everything else (including trailing comments)
+              const valueAndComment = m[3];
+              // Find where the value ends and comment begins
+              const commentIdx = valueAndComment.search(/\/\//);
+              const comment = commentIdx >= 0 ? ' ' + valueAndComment.slice(commentIdx) : '';
+              const replacement = typeof varValue === 'string'
+                ? JSON.stringify(varValue)
+                : String(varValue);
+              execLines.push(`${m[1]}${varName}${m[2]}${replacement}${comment}`);
+              replaced = true;
+              break;
+            }
+          }
+          if (!replaced) {
+            execLines.push(line);
+          }
+        }
+        const execCode = execLines.join('\n');
+
         const returnObj = symbolsWritten.length > 0
           ? `\nreturn { ${symbolsWritten.map(s => `"${s}": typeof ${s} !== 'undefined' ? ${s} : undefined`).join(', ')} };`
           : '';
 
-        const fn = new Function('__scope__', `with(__scope__) { ${node.code}\n${returnObj} }`);
+        const fn = new Function('__scope__', `with(__scope__) { ${execCode}\n${returnObj} }`);
         const result = fn(scope);
 
         if (result) {
