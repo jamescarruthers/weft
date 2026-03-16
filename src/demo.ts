@@ -191,5 +191,20 @@ const y_pos = scale * sin(_internal) // @colour("blue") @graph(x_pos, y_pos)`,
       collapsed: false,
       colorTag: null,
     },
+
+    // 15. Note node
+    {
+      id: 'demo_note',
+      code: `// About this demo
+// This canvas demonstrates all Weft features.
+// Double-click empty space to create a node.
+// Use sliders, toggles, and text inputs to
+// interact with values in real time.`,
+      position: { x: 740, y: 720 },
+      width: 260,
+      title: 'About this demo',
+      collapsed: false,
+      colorTag: null,
+    },
   ],
 };

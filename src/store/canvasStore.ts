@@ -59,6 +59,7 @@ interface CanvasStore {
 
   // Viewport
   setViewport: (vp: Partial<CanvasViewport>) => void;
+  zoomToExtents: () => void;
 
   // Evaluation
   rebuildGraph: () => void;
@@ -192,7 +193,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     const node = state.nodes.get(id);
     if (!node) return;
 
-    const { rows, errors, title: commentTitle } = parseNodeCode(code);
+    const { rows, errors, title: commentTitle, noteText } = parseNodeCode(code);
     const autoTitle = commentTitle
       ? commentTitle
       : rows.length === 1 && rows[0].name && !rows[0].name.startsWith('_')
@@ -203,6 +204,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       ...node,
       code,
       parsedRows: rows,
+      noteText,
       status: errors.length > 0 ? 'error' : 'ok',
       errors,
       title: commentTitle ? commentTitle : (node.title.startsWith('Node ') ? autoTitle : node.title),
@@ -333,6 +335,39 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   setViewport: (vp: Partial<CanvasViewport>) => {
     const state = get();
     set({ viewport: { ...state.viewport, ...vp } });
+  },
+
+  zoomToExtents: () => {
+    const state = get();
+    const nodes = Array.from(state.nodes.values());
+    if (nodes.length === 0) return;
+
+    // Estimate node heights (~80px default)
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const n of nodes) {
+      minX = Math.min(minX, n.position.x);
+      minY = Math.min(minY, n.position.y);
+      maxX = Math.max(maxX, n.position.x + n.width);
+      const rowCount = Math.max(1, n.parsedRows.length);
+      const estimatedH = 23 + rowCount * 32 + (n.noteText ? 40 : 0);
+      maxY = Math.max(maxY, n.position.y + estimatedH);
+    }
+
+    const padding = 60;
+    minX -= padding; minY -= padding;
+    maxX += padding; maxY += padding;
+
+    const contentW = maxX - minX;
+    const contentH = maxY - minY;
+    // Toolbar is 36px top, transport bar is 44px bottom
+    const viewW = window.innerWidth;
+    const viewH = window.innerHeight - 36 - 44;
+
+    const zoom = Math.min(1.5, Math.min(viewW / contentW, viewH / contentH));
+    const x = (viewW - contentW * zoom) / 2 - minX * zoom;
+    const y = 36 + (viewH - contentH * zoom) / 2 - minY * zoom;
+
+    set({ viewport: { x, y, zoom } });
   },
 
   rebuildGraph: () => {
@@ -831,7 +866,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       const data = JSON.parse(json);
       const newNodes = new Map<string, NodeState>();
       for (const n of data.nodes) {
-        const { rows, errors, title: commentTitle } = parseNodeCode(n.code);
+        const { rows, errors, title: commentTitle, noteText } = parseNodeCode(n.code);
         newNodes.set(n.id, {
           id: n.id,
           code: n.code,
@@ -841,6 +876,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
           collapsed: n.collapsed || false,
           colorTag: n.colorTag || null,
           parsedRows: rows,
+          noteText,
           editing: false,
           status: errors.length > 0 ? 'error' : 'ok',
           errors,
