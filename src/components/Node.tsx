@@ -30,17 +30,22 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState(node.title);
 
-  // Compute which row indices are glow targets (downstream of a glowing edge)
-  const glowingRowIndices = useMemo(() => {
-    const indices = new Set<number>();
+  // Compute which row indices are glow targets and their intensity
+  const glowingRows = useMemo(() => {
+    const map = new Map<number, 'user' | 'time'>();
     for (const edge of edges) {
       if (edge.targetNodeId !== node.id) continue;
       const edgeKey = `${edge.sourceNodeId}-${edge.targetNodeId}-${edge.symbol}`;
-      if (glowingEdges.has(edgeKey)) {
-        indices.add(edge.targetRowIndex);
+      const glowType = glowingEdges.get(edgeKey);
+      if (glowType) {
+        const existing = map.get(edge.targetRowIndex);
+        // Don't downgrade user to time
+        if (!existing || existing !== 'user') {
+          map.set(edge.targetRowIndex, glowType);
+        }
       }
     }
-    return indices;
+    return map;
   }, [edges, glowingEdges, node.id]);
 
   // Map variable names to their graph series color
@@ -237,13 +242,26 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
             return (
               <React.Fragment key={i}>
                 {i > 0 && <div style={{ height: '1px', background: theme.surface0 }} />}
-                <div className="node-interactive" style={{
-                  position: 'relative',
-                  ...(glowingRowIndices.has(i) ? {
-                    boxShadow: `inset 3px 0 8px -2px ${stripeColor(row.kind)}`,
-                  } : {}),
-                }}>
+                <div className="node-interactive" style={{ position: 'relative' }}>
                   {renderRow(row, i)}
+                  {glowingRows.has(i) && (() => {
+                    const type = glowingRows.get(i)!;
+                    const color = stripeColor(row.kind);
+                    return (
+                      <div style={{
+                        position: 'absolute',
+                        left: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: '3px',
+                        background: color,
+                        boxShadow: type === 'user'
+                          ? `0 0 8px 2px ${color}, 0 0 16px 4px ${color}`
+                          : `0 0 4px 1px ${color}`,
+                        pointerEvents: 'none',
+                      }} />
+                    );
+                  })()}
                   {graphColorMap.has(row.name) && (
                     <div style={{
                       position: 'absolute',

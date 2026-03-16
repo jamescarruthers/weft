@@ -5,7 +5,7 @@ import { stripeColor } from '../theme/catppuccin-frappe';
 interface Props {
   edge: EdgeInfo;
   nodes: Map<string, NodeState>;
-  glowing?: boolean;
+  glowing?: 'user' | 'time' | false;
 }
 
 const COMMENT_HEIGHT = 17;
@@ -75,10 +75,13 @@ export const EdgeComponent: React.FC<Props> = ({ edge, nodes, glowing }) => {
 
   const path = `M ${srcX} ${srcY} C ${srcX + cpOffset} ${srcY}, ${tgtX - cpOffset} ${tgtY}, ${tgtX} ${tgtY}`;
 
+  const isUser = glowing === 'user';
+  const isTime = glowing === 'time';
+
   return (
-    <g style={{ transition: 'opacity 0.3s' }}>
+    <g>
       {/* Glow layer */}
-      {glowing && (
+      {isUser && (
         <path
           d={path}
           fill="none"
@@ -94,13 +97,13 @@ export const EdgeComponent: React.FC<Props> = ({ edge, nodes, glowing }) => {
         d={path}
         fill="none"
         stroke={color}
-        strokeWidth={glowing ? 2.5 : 1.5}
-        strokeOpacity={glowing ? 1 : 0.6}
+        strokeWidth={isUser ? 2.5 : isTime ? 1.8 : 1.5}
+        strokeOpacity={isUser ? 1 : isTime ? 0.8 : 0.6}
       />
       {/* Source port */}
-      <circle cx={srcX} cy={srcY} r={glowing ? 4 : 3} fill={color} fillOpacity={glowing ? 1 : 0.8} />
+      <circle cx={srcX} cy={srcY} r={isUser ? 4 : 3} fill={color} fillOpacity={isUser ? 1 : 0.8} />
       {/* Target port */}
-      <circle cx={tgtX} cy={tgtY} r={glowing ? 4 : 3} fill="none" stroke={color} strokeWidth={glowing ? 2 : 1.5} strokeOpacity={glowing ? 1 : 0.8} />
+      <circle cx={tgtX} cy={tgtY} r={isUser ? 4 : 3} fill="none" stroke={color} strokeWidth={isUser ? 2 : 1.5} strokeOpacity={isUser ? 1 : 0.8} />
     </g>
   );
 };

@@ -273,7 +273,7 @@ export const Canvas: React.FC = () => {
               key={`${edge.sourceNodeId}-${edge.targetNodeId}-${edge.symbol}-${i}`}
               edge={edge}
               nodes={nodes}
-              glowing={glowingEdges.has(`${edge.sourceNodeId}-${edge.targetNodeId}-${edge.symbol}`)}
+              glowing={glowingEdges.get(`${edge.sourceNodeId}-${edge.targetNodeId}-${edge.symbol}`) || false}
             />
           ))}
         </svg>
