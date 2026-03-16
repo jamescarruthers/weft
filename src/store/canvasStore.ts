@@ -246,11 +246,8 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     const newNodes = new Map(state.nodes);
     newNodes.set(nodeId, { ...node, parsedRows: newRows });
 
-    // Update scope
-    const newScope = { ...state.scope };
-    newScope[newRows[rowIndex].name] = value;
-
-    set({ nodes: newNodes, scope: newScope });
+    // Don't update scope here — let evaluateAll detect the change
+    set({ nodes: newNodes });
 
     // Re-evaluate downstream
     if (state.execution.mode === 'live') {
