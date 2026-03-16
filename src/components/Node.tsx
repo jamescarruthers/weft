@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { NodeState } from '../types';
 import { theme, stripeColor } from '../theme/catppuccin-frappe';
 import { useCanvasStore } from '../store/canvasStore';
@@ -23,10 +23,12 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
   const {
     updateNodeCode, updateNodePosition, setNodeEditing, setNodeTitle,
     deleteNode, updateValue, selectNode, pushUndo, sparklineHistory, graphHistory,
-    edges, glowingEdges,
+    edges, glowingEdges, setRowYPosition,
   } = useCanvasStore();
 
   const dragRef = useRef<{ startX: number; startY: number; nodeX: number; nodeY: number } | null>(null);
+  const nodeRef = useRef<HTMLDivElement>(null);
+  const rowRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState(node.title);
 
@@ -102,6 +104,20 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
     setNodeEditing(node.id, false);
   }, [node.id, setNodeEditing]);
 
+  // Measure row Y positions after render
+  useEffect(() => {
+    const nodeEl = nodeRef.current;
+    if (!nodeEl) return;
+    const nodeRect = nodeEl.getBoundingClientRect();
+    const zoomRatio = nodeRect.width / node.width;
+    if (zoomRatio === 0) return;
+    for (const [idx, el] of rowRefs.current) {
+      const rowRect = el.getBoundingClientRect();
+      const y = Math.round((rowRect.top + rowRect.height / 2 - nodeRect.top) / zoomRatio);
+      setRowYPosition(node.id, idx, y);
+    }
+  });
+
   const statusColor = node.status === 'error' ? theme.red : node.status === 'computing' ? theme.yellow : theme.green;
 
   const renderRow = (row: typeof node.parsedRows[0], index: number) => {
@@ -132,6 +148,7 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
 
   return (
     <div
+      ref={nodeRef}
       style={{
         position: 'absolute',
         left: `${node.position.x}px`,
@@ -242,7 +259,11 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
             return (
               <React.Fragment key={i}>
                 {i > 0 && <div style={{ height: '1px', background: theme.surface0 }} />}
-                <div className="node-interactive" style={{ position: 'relative' }}>
+                <div
+                  className="node-interactive"
+                  ref={el => { if (el) rowRefs.current.set(i, el); else rowRefs.current.delete(i); }}
+                  style={{ position: 'relative' }}
+                >
                   {renderRow(row, i)}
                   {glowingRows.has(i) && (() => {
                     const type = glowingRows.get(i)!;

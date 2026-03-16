@@ -6,82 +6,24 @@ interface Props {
   edge: EdgeInfo;
   nodes: Map<string, NodeState>;
   glowing?: 'user' | 'time' | false;
+  rowYPositions: Map<string, number>;
 }
 
-const COMMENT_HEIGHT = 17;
-const DIVIDER_HEIGHT = 1;
-const NODE_BORDER = 1;
+// Fallback: header(23) + border(1) + half simple row(14)
+const FALLBACK_Y = 38;
 
-// Header: 4px padding top + ~14px content + 4px padding bottom + 1px border-bottom
-const HEADER_HEIGHT = 23;
-
-// Row: 6px padding top + ~16px content + 6px padding bottom
-const SIMPLE_ROW_HEIGHT = 28;
-
-// Slider row: 6px padding top + ~16px name line + 4px gap + ~12px slider + 6px padding bottom
-const SLIDER_ROW_HEIGHT = 44;
-
-// Sparkline: 0px top padding + 14px sparkline + 2px bottom padding
-const SPARKLINE_HEIGHT = 16;
-
-// Graph: 2px top padding + 72px graph + 4px bottom padding
-const GRAPH_HEIGHT = 78;
-
-function getRowY(node: NodeState, rowIndex: number): number {
-  // Start after the node's top border and header
-  let y = NODE_BORDER + HEADER_HEIGHT;
-
-  for (let i = 0; i < rowIndex && i < node.parsedRows.length; i++) {
-    // Divider before each row except the first
-    if (i > 0) {
-      y += DIVIDER_HEIGHT;
-    }
-
-    const row = node.parsedRows[i];
-    const isSlider = (row.kind === 'var' || row.kind === 'let') && row.valueType === 'number';
-    y += isSlider ? SLIDER_ROW_HEIGHT : SIMPLE_ROW_HEIGHT;
-
-    // Sparkline below the row
-    if (row.pragmas.sparkline) {
-      y += SPARKLINE_HEIGHT;
-    }
-
-    // Graph below the row
-    if (row.pragmas.graphs && row.pragmas.graphs.length > 0) {
-      y += GRAPH_HEIGHT;
-    }
-
-    // Comment below the row
-    if (row.comment) {
-      y += COMMENT_HEIGHT;
-    }
-  }
-
-  // Divider before this row (if not first)
-  if (rowIndex > 0) {
-    y += DIVIDER_HEIGHT;
-  }
-
-  // Center vertically within this row
-  const row = node.parsedRows[rowIndex];
-  if (row) {
-    const isSlider = (row.kind === 'var' || row.kind === 'let') && row.valueType === 'number';
-    const rowH = isSlider ? SLIDER_ROW_HEIGHT : SIMPLE_ROW_HEIGHT;
-    y += rowH / 2;
-  }
-
-  return y;
-}
-
-export const EdgeComponent: React.FC<Props> = ({ edge, nodes, glowing }) => {
+export const EdgeComponent: React.FC<Props> = ({ edge, nodes, glowing, rowYPositions }) => {
   const sourceNode = nodes.get(edge.sourceNodeId);
   const targetNode = nodes.get(edge.targetNodeId);
   if (!sourceNode || !targetNode) return null;
 
+  const srcYOffset = rowYPositions.get(`${edge.sourceNodeId}:${edge.sourceRowIndex}`) ?? FALLBACK_Y;
+  const tgtYOffset = rowYPositions.get(`${edge.targetNodeId}:${edge.targetRowIndex}`) ?? FALLBACK_Y;
+
   const srcX = sourceNode.position.x + sourceNode.width;
-  const srcY = sourceNode.position.y + getRowY(sourceNode, edge.sourceRowIndex);
+  const srcY = sourceNode.position.y + srcYOffset;
   const tgtX = targetNode.position.x;
-  const tgtY = targetNode.position.y + getRowY(targetNode, edge.targetRowIndex);
+  const tgtY = targetNode.position.y + tgtYOffset;
 
   const dx = Math.abs(tgtX - srcX);
   const cpOffset = Math.max(50, dx * 0.4);
