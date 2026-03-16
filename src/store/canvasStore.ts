@@ -32,6 +32,9 @@ interface CanvasStore {
   sparklineHistory: Map<string, number[]>;
   graphHistory: Map<string, { x: number; y: number }[]>;
 
+  // Edge glow
+  glowingEdges: Set<string>;
+
   // Undo
   undoStack: UndoEntry[];
   redoStack: UndoEntry[];
@@ -115,6 +118,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 
   sparklineHistory: new Map(),
   graphHistory: new Map(),
+  glowingEdges: new Set(),
 
   execution: {
     mode: 'live',
@@ -472,7 +476,35 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       }
     }
 
-    set({ nodes: newNodes, scope, sparklineHistory, graphHistory });
+    // Detect changed symbols and activate edge glow
+    const changedSymbols = new Set<string>();
+    const oldScope = state.scope;
+    for (const key of Object.keys(scope)) {
+      if (key === 't' || key === 'dt') continue;
+      if (oldScope[key] !== scope[key]) {
+        changedSymbols.add(key);
+      }
+    }
+
+    if (changedSymbols.size > 0) {
+      const newGlowing = new Set(state.glowingEdges);
+      for (const edge of state.edges) {
+        if (changedSymbols.has(edge.symbol)) {
+          newGlowing.add(`${edge.sourceNodeId}-${edge.targetNodeId}-${edge.symbol}`);
+        }
+      }
+      set({ nodes: newNodes, scope, sparklineHistory, graphHistory, glowingEdges: newGlowing });
+
+      // Clear glow after 500ms
+      setTimeout(() => {
+        const current = get().glowingEdges;
+        if (current.size > 0) {
+          set({ glowingEdges: new Set() });
+        }
+      }, 500);
+    } else {
+      set({ nodes: newNodes, scope, sparklineHistory, graphHistory });
+    }
   },
 
   evaluateFrom: (_stepIndex: number) => {
