@@ -28,6 +28,9 @@ interface CanvasStore {
   // Execution
   execution: ExecutionState;
 
+  // Sparkline
+  sparklineHistory: Map<string, number[]>;
+
   // Undo
   undoStack: UndoEntry[];
   redoStack: UndoEntry[];
@@ -108,6 +111,8 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   timeT: 0,
   timeDt: 0,
   lastTimestamp: 0,
+
+  sparklineHistory: new Map(),
 
   execution: {
     mode: 'live',
@@ -400,7 +405,20 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       }
     }
 
-    set({ nodes: newNodes, scope });
+    // Record sparkline history
+    const sparklineHistory = new Map(state.sparklineHistory);
+    for (const [nodeId, node] of newNodes) {
+      for (const row of node.parsedRows) {
+        if (row.pragmas.sparkline && typeof row.currentValue === 'number') {
+          const key = `${nodeId}:${row.name}`;
+          const hist = sparklineHistory.get(key) || [];
+          const updated = [...hist, row.currentValue];
+          sparklineHistory.set(key, updated.length > 50 ? updated.slice(-50) : updated);
+        }
+      }
+    }
+
+    set({ nodes: newNodes, scope, sparklineHistory });
   },
 
   evaluateFrom: (_stepIndex: number) => {

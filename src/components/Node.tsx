@@ -3,6 +3,7 @@ import { NodeState } from '../types';
 import { theme, stripeColor } from '../theme/catppuccin-frappe';
 import { useCanvasStore } from '../store/canvasStore';
 import { NodeEditor } from './NodeEditor';
+import { Sparkline } from './Sparkline';
 import { SliderRow } from './rows/SliderRow';
 import { TextRow } from './rows/TextRow';
 import { ToggleRow } from './rows/ToggleRow';
@@ -19,7 +20,7 @@ interface Props {
 export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
   const {
     updateNodeCode, updateNodePosition, setNodeEditing, setNodeTitle,
-    deleteNode, updateValue, selectNode, pushUndo,
+    deleteNode, updateValue, selectNode, pushUndo, sparklineHistory,
   } = useCanvasStore();
 
   const dragRef = useRef<{ startX: number; startY: number; nodeX: number; nodeY: number } | null>(null);
@@ -189,23 +190,32 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
               Double-click to edit
             </div>
           )}
-          {node.parsedRows.map((row, i) => (
-            <React.Fragment key={i}>
-              {i > 0 && <div style={{ height: '1px', background: theme.surface0 }} />}
-              <div className="node-interactive">{renderRow(row, i)}</div>
-              {row.comment && (
-                <div style={{
-                  padding: '0 10px 4px 16px',
-                  color: theme.overlay0,
-                  fontSize: '10px',
-                  fontStyle: 'italic',
-                  lineHeight: 1.3,
-                }}>
-                  {row.comment}
-                </div>
-              )}
-            </React.Fragment>
-          ))}
+          {node.parsedRows.map((row, i) => {
+            const histKey = `${node.id}:${row.name}`;
+            const hist = row.pragmas.sparkline ? sparklineHistory.get(histKey) : undefined;
+            return (
+              <React.Fragment key={i}>
+                {i > 0 && <div style={{ height: '1px', background: theme.surface0 }} />}
+                <div className="node-interactive">{renderRow(row, i)}</div>
+                {hist && hist.length >= 2 && (
+                  <div style={{ padding: '0 10px 2px 16px' }}>
+                    <Sparkline history={hist} width={node.width - 32} height={14} />
+                  </div>
+                )}
+                {row.comment && (
+                  <div style={{
+                    padding: '0 10px 4px 16px',
+                    color: theme.overlay0,
+                    fontSize: '10px',
+                    fontStyle: 'italic',
+                    lineHeight: 1.3,
+                  }}>
+                    {row.comment}
+                  </div>
+                )}
+              </React.Fragment>
+            );
+          })}
           {node.errors.map((err, i) => (
             <div key={`err-${i}`} style={{
               padding: '4px 8px', color: theme.red, fontSize: '11px', fontWeight: 400,

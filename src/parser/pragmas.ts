@@ -4,6 +4,7 @@ export interface Pragmas {
   int?: boolean;
   color?: boolean;
   hidden?: boolean;
+  sparkline?: boolean;
 }
 
 export function parsePragmas(comment: string): Pragmas {
@@ -22,6 +23,7 @@ export function parsePragmas(comment: string): Pragmas {
   if (/@int\b/.test(comment)) pragmas.int = true;
   if (/@color\b/.test(comment)) pragmas.color = true;
   if (/@hidden\b/.test(comment)) pragmas.hidden = true;
+  if (/@sparkline\b/.test(comment)) pragmas.sparkline = true;
 
   return pragmas;
 }
@@ -35,6 +37,7 @@ export function extractComment(comment: string): string | undefined {
     .replace(/@int\b/g, '')
     .replace(/@color\b/g, '')
     .replace(/@hidden\b/g, '')
+    .replace(/@sparkline\b/g, '')
     .trim();
   return cleaned || undefined;
 }
