@@ -28,6 +28,10 @@ interface CanvasStore {
   // Execution
   execution: ExecutionState;
 
+  // Sparkline & Graph
+  sparklineHistory: Map<string, number[]>;
+  graphHistory: Map<string, { x: number; y: number }[]>;
+
   // Undo
   undoStack: UndoEntry[];
   redoStack: UndoEntry[];
@@ -108,6 +112,9 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   timeT: 0,
   timeDt: 0,
   lastTimestamp: 0,
+
+  sparklineHistory: new Map(),
+  graphHistory: new Map(),
 
   execution: {
     mode: 'live',
@@ -400,7 +407,39 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       }
     }
 
-    set({ nodes: newNodes, scope });
+    // Record sparkline history
+    const sparklineHistory = new Map(state.sparklineHistory);
+    for (const [nodeId, node] of newNodes) {
+      for (const row of node.parsedRows) {
+        if (row.pragmas.sparkline && typeof row.currentValue === 'number') {
+          const key = `${nodeId}:${row.name}`;
+          const hist = sparklineHistory.get(key) || [];
+          const updated = [...hist, row.currentValue];
+          sparklineHistory.set(key, updated.length > 50 ? updated.slice(-50) : updated);
+        }
+      }
+    }
+
+    // Record graph history
+    const graphHistory = new Map(state.graphHistory);
+    for (const [nodeId, node] of newNodes) {
+      for (const row of node.parsedRows) {
+        if (row.pragmas.graphs) {
+          for (const g of row.pragmas.graphs) {
+            const xVal = g.x === null ? state.timeT : scope[g.x];
+            const yVal = scope[g.y];
+            if (typeof xVal === 'number' && typeof yVal === 'number' && isFinite(xVal) && isFinite(yVal)) {
+              const key = `${nodeId}:${row.name}:graph:${g.y}`;
+              const hist = graphHistory.get(key) || [];
+              const updated = [...hist, { x: xVal, y: yVal }];
+              graphHistory.set(key, updated.length > 200 ? updated.slice(-200) : updated);
+            }
+          }
+        }
+      }
+    }
+
+    set({ nodes: newNodes, scope, sparklineHistory, graphHistory });
   },
 
   evaluateFrom: (_stepIndex: number) => {
@@ -611,7 +650,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   },
 
   resetTime: () => {
-    set({ timeT: 0, timeDt: 0, lastTimestamp: performance.now() });
+    set({ timeT: 0, timeDt: 0, lastTimestamp: performance.now(), sparklineHistory: new Map(), graphHistory: new Map() });
     get().evaluateAll();
   },
 
