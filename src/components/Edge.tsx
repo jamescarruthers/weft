@@ -5,6 +5,7 @@ import { stripeColor } from '../theme/catppuccin-frappe';
 interface Props {
   edge: EdgeInfo;
   nodes: Map<string, NodeState>;
+  glowing?: boolean;
 }
 
 const COMMENT_HEIGHT = 17;
@@ -56,7 +57,7 @@ function getRowY(node: NodeState, rowIndex: number): number {
   return y;
 }
 
-export const EdgeComponent: React.FC<Props> = ({ edge, nodes }) => {
+export const EdgeComponent: React.FC<Props> = ({ edge, nodes, glowing }) => {
   const sourceNode = nodes.get(edge.sourceNodeId);
   const targetNode = nodes.get(edge.targetNodeId);
   if (!sourceNode || !targetNode) return null;
@@ -75,18 +76,31 @@ export const EdgeComponent: React.FC<Props> = ({ edge, nodes }) => {
   const path = `M ${srcX} ${srcY} C ${srcX + cpOffset} ${srcY}, ${tgtX - cpOffset} ${tgtY}, ${tgtX} ${tgtY}`;
 
   return (
-    <g>
+    <g style={{ transition: 'opacity 0.3s' }}>
+      {/* Glow layer */}
+      {glowing && (
+        <path
+          d={path}
+          fill="none"
+          stroke={color}
+          strokeWidth={6}
+          strokeOpacity={0.4}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          style={{ filter: `drop-shadow(0 0 4px ${color})` }}
+        />
+      )}
       <path
         d={path}
         fill="none"
         stroke={color}
-        strokeWidth={1.5}
-        strokeOpacity={0.6}
+        strokeWidth={glowing ? 2.5 : 1.5}
+        strokeOpacity={glowing ? 1 : 0.6}
       />
       {/* Source port */}
-      <circle cx={srcX} cy={srcY} r={3} fill={color} />
+      <circle cx={srcX} cy={srcY} r={glowing ? 4 : 3} fill={color} fillOpacity={glowing ? 1 : 0.8} />
       {/* Target port */}
-      <circle cx={tgtX} cy={tgtY} r={3} fill="none" stroke={color} strokeWidth={1.5} />
+      <circle cx={tgtX} cy={tgtY} r={glowing ? 4 : 3} fill="none" stroke={color} strokeWidth={glowing ? 2 : 1.5} strokeOpacity={glowing ? 1 : 0.8} />
     </g>
   );
 };
