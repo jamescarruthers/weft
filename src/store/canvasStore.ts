@@ -407,8 +407,9 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
         const interactiveVars = new Map<string, any>();
         for (const row of node.parsedRows) {
           if (row.name && !row.name.startsWith('_expr_') && !row.name.startsWith('_block_')) {
-            // If row has a user-set currentValue (interactive), inject it into scope
-            if ((row.kind === 'var' || row.kind === 'let') && row.currentValue !== undefined && row.initialValue !== undefined) {
+            // If row has a user-set currentValue (interactive scalar), inject it into scope
+            if ((row.kind === 'var' || row.kind === 'let') && row.currentValue !== undefined && row.initialValue !== undefined
+                && (row.valueType === 'number' || row.valueType === 'string' || row.valueType === 'boolean')) {
               interactiveVars.set(row.name, row.currentValue);
               scope[row.name] = row.currentValue;
             }
