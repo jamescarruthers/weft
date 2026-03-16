@@ -21,6 +21,12 @@ const SIMPLE_ROW_HEIGHT = 28;
 // Slider row: 6px padding top + ~16px name line + 4px gap + ~12px slider + 6px padding bottom
 const SLIDER_ROW_HEIGHT = 44;
 
+// Sparkline: 0px top padding + 14px sparkline + 2px bottom padding
+const SPARKLINE_HEIGHT = 16;
+
+// Graph: 2px top padding + 72px graph + 4px bottom padding
+const GRAPH_HEIGHT = 78;
+
 function getRowY(node: NodeState, rowIndex: number): number {
   // Start after the node's top border and header
   let y = NODE_BORDER + HEADER_HEIGHT;
@@ -34,6 +40,16 @@ function getRowY(node: NodeState, rowIndex: number): number {
     const row = node.parsedRows[i];
     const isSlider = (row.kind === 'var' || row.kind === 'let') && row.valueType === 'number';
     y += isSlider ? SLIDER_ROW_HEIGHT : SIMPLE_ROW_HEIGHT;
+
+    // Sparkline below the row
+    if (row.pragmas.sparkline) {
+      y += SPARKLINE_HEIGHT;
+    }
+
+    // Graph below the row
+    if (row.pragmas.graphs && row.pragmas.graphs.length > 0) {
+      y += GRAPH_HEIGHT;
+    }
 
     // Comment below the row
     if (row.comment) {
