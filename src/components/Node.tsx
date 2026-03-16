@@ -212,10 +212,12 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
             let graphXLabel: string | undefined;
             if (row.pragmas.graphs && row.pragmas.graphs.length > 0) {
               graphXLabel = row.pragmas.graphs[0].x || 't';
+              const localNames = new Set(node.parsedRows.map(r => r.name));
               graphSeries = row.pragmas.graphs.map((g: { x: string | null; y: string }, gi: number) => ({
                 label: g.y,
                 points: graphHistory.get(`${node.id}:${row.name}:graph:${g.y}`) || [],
                 color: getSeriesColor(gi),
+                external: !localNames.has(g.y),
               }));
             }
             return (

@@ -33,7 +33,7 @@ export const DisplayRow: React.FC<Props> = ({ row }) => {
         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         maxWidth: '150px',
       }}>
-        {formatValue(value)}
+        {formatValue(value)}{row.pragmas.unit ? <span style={{ color: theme.overlay0, fontWeight: 400, marginLeft: '3px' }}>{row.pragmas.unit}</span> : null}
       </span>
     </div>
   );

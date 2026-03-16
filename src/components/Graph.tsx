@@ -10,6 +10,7 @@ export interface GraphSeries {
   label: string;
   points: Point[];
   color: string;
+  external?: boolean;
 }
 
 interface Props {
@@ -155,6 +156,25 @@ export const Graph: React.FC<Props> = ({ series, width, height, xLabel }) => {
           />
         );
       })}
+
+      {/* Legend for external (linked) series */}
+      {series.some(s => s.external) && (() => {
+        const extSeries = series.filter(s => s.external);
+        const lx = width - PADDING.right - 4;
+        const ly = PADDING.top + 4;
+        return extSeries.map((s, i) => (
+          <g key={`leg${i}`}>
+            <circle cx={lx - 30} cy={ly + i * 10 + 3} r={2.5} fill={s.color} />
+            <text
+              x={lx - 25} y={ly + i * 10 + 6}
+              fill={theme.subtext0} fontSize={7} textAnchor="start"
+              fontFamily="'JetBrains Mono', monospace"
+            >
+              {s.label}
+            </text>
+          </g>
+        ));
+      })()}
 
       <defs>
         <clipPath id={clipId}>
