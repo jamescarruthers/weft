@@ -165,10 +165,12 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     const node = state.nodes.get(id);
     if (!node) return;
 
-    const { rows, errors } = parseNodeCode(code);
-    const autoTitle = rows.length === 1 && rows[0].name && !rows[0].name.startsWith('_')
-      ? rows[0].name
-      : node.title;
+    const { rows, errors, title: commentTitle } = parseNodeCode(code);
+    const autoTitle = commentTitle
+      ? commentTitle
+      : rows.length === 1 && rows[0].name && !rows[0].name.startsWith('_')
+        ? rows[0].name
+        : node.title;
 
     const newNode: NodeState = {
       ...node,
@@ -176,7 +178,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       parsedRows: rows,
       status: errors.length > 0 ? 'error' : 'ok',
       errors,
-      title: node.title.startsWith('Node ') ? autoTitle : node.title,
+      title: commentTitle ? commentTitle : (node.title.startsWith('Node ') ? autoTitle : node.title),
     };
 
     const newNodes = new Map(state.nodes);
@@ -687,13 +689,13 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       const data = JSON.parse(json);
       const newNodes = new Map<string, NodeState>();
       for (const n of data.nodes) {
-        const { rows, errors } = parseNodeCode(n.code);
+        const { rows, errors, title: commentTitle } = parseNodeCode(n.code);
         newNodes.set(n.id, {
           id: n.id,
           code: n.code,
           position: n.position,
           width: n.width || 260,
-          title: n.title || 'Node',
+          title: commentTitle || n.title || 'Node',
           collapsed: n.collapsed || false,
           colorTag: n.colorTag || null,
           parsedRows: rows,
