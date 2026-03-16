@@ -10,6 +10,10 @@ interface UndoEntry {
 }
 
 interface CanvasStore {
+  // File
+  fileName: string;
+  setFileName: (name: string) => void;
+
   // Nodes
   nodes: Map<string, NodeState>;
   viewport: CanvasViewport;
@@ -109,6 +113,9 @@ function cloneScope(scope: Record<string, any>): Record<string, any> {
 }
 
 export const useCanvasStore = create<CanvasStore>((set, get) => ({
+  fileName: 'Untitled',
+  setFileName: (name: string) => set({ fileName: name || 'Untitled' }),
+
   nodes: new Map(),
   viewport: { x: 0, y: 0, zoom: 1 },
   scope: {},
@@ -822,6 +829,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     const state = get();
     const data = {
       version: 1,
+      fileName: state.fileName,
       viewport: state.viewport,
       nodes: Array.from(state.nodes.values()).map(n => ({
         id: n.id,
@@ -848,6 +856,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     const state = get();
     return JSON.stringify({
       version: 1,
+      fileName: state.fileName,
       viewport: state.viewport,
       nodes: Array.from(state.nodes.values()).map(n => ({
         id: n.id,
@@ -885,6 +894,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       set({
         nodes: newNodes,
         viewport: data.viewport || { x: 0, y: 0, zoom: 1 },
+        fileName: data.fileName || 'Untitled',
         nextNodeNum: newNodes.size + 1,
       });
       get().rebuildGraph();
