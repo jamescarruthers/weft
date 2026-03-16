@@ -4,6 +4,7 @@ import { theme, stripeColor } from '../theme/catppuccin-frappe';
 import { useCanvasStore } from '../store/canvasStore';
 import { NodeEditor } from './NodeEditor';
 import { Sparkline } from './Sparkline';
+import { Graph } from './Graph';
 import { SliderRow } from './rows/SliderRow';
 import { TextRow } from './rows/TextRow';
 import { ToggleRow } from './rows/ToggleRow';
@@ -20,7 +21,7 @@ interface Props {
 export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
   const {
     updateNodeCode, updateNodePosition, setNodeEditing, setNodeTitle,
-    deleteNode, updateValue, selectNode, pushUndo, sparklineHistory,
+    deleteNode, updateValue, selectNode, pushUndo, sparklineHistory, graphHistory,
   } = useCanvasStore();
 
   const dragRef = useRef<{ startX: number; startY: number; nodeX: number; nodeY: number } | null>(null);
@@ -193,6 +194,8 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
           {node.parsedRows.map((row, i) => {
             const histKey = `${node.id}:${row.name}`;
             const hist = row.pragmas.sparkline ? sparklineHistory.get(histKey) : undefined;
+            const graphKey = `${node.id}:${row.name}:graph`;
+            const graphPoints = row.pragmas.graph ? graphHistory.get(graphKey) : undefined;
             return (
               <React.Fragment key={i}>
                 {i > 0 && <div style={{ height: '1px', background: theme.surface0 }} />}
@@ -200,6 +203,17 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
                 {hist && hist.length >= 2 && (
                   <div style={{ padding: '0 10px 2px 16px' }}>
                     <Sparkline history={hist} width={node.width - 32} height={14} />
+                  </div>
+                )}
+                {row.pragmas.graph && (
+                  <div style={{ padding: '2px 6px 4px 6px' }}>
+                    <Graph
+                      points={graphPoints || []}
+                      width={node.width - 18}
+                      height={72}
+                      xLabel={row.pragmas.graph.x || 't'}
+                      yLabel={row.pragmas.graph.y}
+                    />
                   </div>
                 )}
                 {row.comment && (
