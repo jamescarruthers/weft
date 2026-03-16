@@ -8,7 +8,7 @@ interface Props {
 }
 
 export const DisplayRow: React.FC<Props> = ({ row }) => {
-  const stripe = stripeColor(row.kind);
+  const stripe = stripeColor(row.kind, row.pragmas.colour);
   const value = row.currentValue ?? row.initialValue;
   const isConst = row.kind === 'const';
 

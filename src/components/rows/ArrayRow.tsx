@@ -8,7 +8,7 @@ interface Props {
 }
 
 export const ArrayRow: React.FC<Props> = ({ row, onEdit }) => {
-  const stripe = stripeColor(row.kind);
+  const stripe = stripeColor(row.kind, row.pragmas.colour);
   const value = row.currentValue ?? row.initialValue ?? [];
   let display: string;
   try { display = JSON.stringify(value); } catch { display = String(value); }
