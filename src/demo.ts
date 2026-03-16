@@ -24,7 +24,7 @@ var offset = 0 // vertical offset`,
       code: `// Constants
 const PI = Math.PI
 const TAU = PI * 2
-const gravity = 9.81 // m/s²`,
+const gravity = 9.81 // @unit("m/s²")`,
       position: { x: 20, y: 280 },
       width: 260,
       title: 'Constants',
@@ -165,10 +165,10 @@ const { sin, cos, atan2 } = Math`,
     {
       id: 'demo_physics',
       code: `// Physics
-var mass = 2.0 // kg @range(0.1, 10, 0.1)
+var mass = 2.0 // @unit("kg") @range(0.1, 10, 0.1)
 var friction = 0.8 // coefficient @range(0, 1, 0.01)
-const normalForce = mass * gravity // N
-const frictionForce = friction * normalForce // @sparkline`,
+const normalForce = mass * gravity // @unit("N")
+const frictionForce = friction * normalForce // @unit("N") @sparkline`,
       position: { x: 380, y: 620 },
       width: 300,
       title: 'Physics',
@@ -180,7 +180,7 @@ const frictionForce = friction * normalForce // @sparkline`,
     {
       id: 'demo_pragmas',
       code: `// Pragma Examples
-var angle = 45 // degrees @range(0, 360, 1) @int
+var angle = 45 // @unit("°") @range(0, 360, 1) @int
 var scale = 1.0 // @range(0.01, 10, 0.01) @log
 var _internal = angle * Math.PI / 180 // @hidden
 const x_pos = scale * cos(_internal)

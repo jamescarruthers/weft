@@ -11,6 +11,7 @@ export interface Pragmas {
   hidden?: boolean;
   sparkline?: boolean;
   graphs?: GraphPragma[];
+  unit?: string;
 }
 
 export function parsePragmas(comment: string): Pragmas {
@@ -30,6 +31,9 @@ export function parsePragmas(comment: string): Pragmas {
   if (/@color\b/.test(comment)) pragmas.color = true;
   if (/@hidden\b/.test(comment)) pragmas.hidden = true;
   if (/@sparkline\b/.test(comment)) pragmas.sparkline = true;
+
+  const unitMatch = comment.match(/@unit\(\s*"([^"]*)"\s*\)/);
+  if (unitMatch) pragmas.unit = unitMatch[1];
 
   const graphMatches = [...comment.matchAll(/@graph\(\s*(\w+)\s*(?:,\s*(\w+)\s*)?\)/g)];
   if (graphMatches.length > 0) {
@@ -55,6 +59,7 @@ export function extractComment(comment: string): string | undefined {
     .replace(/@color\b/g, '')
     .replace(/@hidden\b/g, '')
     .replace(/@sparkline\b/g, '')
+    .replace(/@unit\([^)]*\)/g, '')
     .replace(/@graph\([^)]*\)/g, '')
     .trim();
   return cleaned || undefined;

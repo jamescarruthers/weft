@@ -63,7 +63,7 @@ export const SliderRow: React.FC<Props> = ({ row, onChange }) => {
             style={{ color: theme.peach, fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
             onClick={handleValueClick}
           >
-            {formatNumber(value)}
+            {formatNumber(value)}{row.pragmas.unit ? <span style={{ color: theme.overlay0, fontWeight: 400, marginLeft: '3px' }}>{row.pragmas.unit}</span> : null}
           </span>
         )}
       </div>
