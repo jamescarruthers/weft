@@ -19,6 +19,12 @@ interface CanvasStore {
   selectedNodeIds: Set<string>;
   nextNodeNum: number;
 
+  // Time
+  timeRunning: boolean;
+  timeT: number;
+  timeDt: number;
+  lastTimestamp: number;
+
   // Execution
   execution: ExecutionState;
 
@@ -64,6 +70,11 @@ interface CanvasStore {
   redo: () => void;
   pushUndo: () => void;
 
+  // Time
+  setTimeRunning: (running: boolean) => void;
+  resetTime: () => void;
+  tick: (timestamp: number) => void;
+
   // Persistence
   saveToLocalStorage: () => void;
   loadFromLocalStorage: () => void;
@@ -92,6 +103,11 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   dag: null,
   selectedNodeIds: new Set(),
   nextNodeNum: 1,
+
+  timeRunning: false,
+  timeT: 0,
+  timeDt: 0,
+  lastTimestamp: 0,
 
   execution: {
     mode: 'live',
@@ -330,7 +346,10 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     const state = get();
     if (!state.dag) return;
 
-    const scope: Record<string, any> = {};
+    const scope: Record<string, any> = {
+      t: state.timeT,
+      dt: state.timeDt,
+    };
     const newNodes = new Map(state.nodes);
 
     for (const nodeId of state.dag.order) {
@@ -425,6 +444,14 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     }
 
     const scope = { ...state.scope };
+    // Inject time variables for stepped mode
+    if (exec.mode === 'stepped') {
+      const totalSteps = exec.sequence.length;
+      scope.t = exec.looping
+        ? exec.loopCount * totalSteps + exec.currentStep
+        : exec.currentStep;
+      scope.dt = exec.stepsPerSecond > 0 ? 1 / exec.stepsPerSecond : 0;
+    }
     try {
       const result = step.compiledFn(scope);
       if (result) Object.assign(scope, result);
@@ -570,6 +597,46 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       undoStack: [...state.undoStack.slice(-50), { nodes: new Map(state.nodes), scope: { ...state.scope } }],
       redoStack: [],
     });
+  },
+
+  setTimeRunning: (running: boolean) => {
+    const state = get();
+    if (running && !state.timeRunning) {
+      set({ timeRunning: true, lastTimestamp: performance.now() });
+    } else if (!running) {
+      set({ timeRunning: false });
+    }
+  },
+
+  resetTime: () => {
+    set({ timeT: 0, timeDt: 0, lastTimestamp: performance.now() });
+    get().evaluateAll();
+  },
+
+  tick: (timestamp: number) => {
+    const state = get();
+    if (!state.timeRunning) return;
+
+    const dt = state.lastTimestamp > 0 ? (timestamp - state.lastTimestamp) / 1000 : 0;
+    const newT = state.timeT + dt;
+
+    // Check if any node uses t or dt — skip re-eval if not needed
+    let usesTime = false;
+    for (const [, node] of state.nodes) {
+      for (const row of node.parsedRows) {
+        if (row.references.includes('t') || row.references.includes('dt')) {
+          usesTime = true;
+          break;
+        }
+      }
+      if (usesTime) break;
+    }
+
+    set({ timeT: newT, timeDt: dt, lastTimestamp: timestamp });
+
+    if (usesTime) {
+      get().evaluateAll();
+    }
   },
 
   saveToLocalStorage: () => {
