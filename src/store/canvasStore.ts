@@ -32,8 +32,8 @@ interface CanvasStore {
   sparklineHistory: Map<string, number[]>;
   graphHistory: Map<string, { x: number; y: number }[]>;
 
-  // Edge glow
-  glowingEdges: Set<string>;
+  // Edge glow: key → 'user' (strong) or 'time' (subtle)
+  glowingEdges: Map<string, 'user' | 'time'>;
 
   // Undo
   undoStack: UndoEntry[];
@@ -57,7 +57,7 @@ interface CanvasStore {
 
   // Evaluation
   rebuildGraph: () => void;
-  evaluateAll: () => void;
+  evaluateAll: (source?: 'user' | 'time') => void;
   evaluateFrom: (stepIndex: number) => void;
 
   // Execution controls
@@ -118,7 +118,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 
   sparklineHistory: new Map(),
   graphHistory: new Map(),
-  glowingEdges: new Set(),
+  glowingEdges: new Map(),
 
   execution: {
     mode: 'live',
@@ -352,7 +352,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     });
   },
 
-  evaluateAll: () => {
+  evaluateAll: (source?: 'user' | 'time') => {
     const state = get();
     if (!state.dag) return;
 
@@ -483,11 +483,16 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       }
     }
 
+    const glowType = source || 'user';
     if (changedSymbols.size > 0) {
-      const newGlowing = new Set(state.glowingEdges);
+      const newGlowing = new Map(state.glowingEdges);
       for (const edge of state.edges) {
         if (changedSymbols.has(edge.symbol)) {
-          newGlowing.add(`${edge.sourceNodeId}-${edge.targetNodeId}-${edge.symbol}`);
+          const key = `${edge.sourceNodeId}-${edge.targetNodeId}-${edge.symbol}`;
+          // Don't downgrade a 'user' glow to 'time'
+          if (!newGlowing.has(key) || newGlowing.get(key) !== 'user') {
+            newGlowing.set(key, glowType);
+          }
         }
       }
       set({ nodes: newNodes, scope, sparklineHistory, graphHistory, glowingEdges: newGlowing });
@@ -496,7 +501,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       setTimeout(() => {
         const current = get().glowingEdges;
         if (current.size > 0) {
-          set({ glowingEdges: new Set() });
+          set({ glowingEdges: new Map() });
         }
       }, 500);
     } else {
@@ -738,7 +743,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     set({ timeT: newT, timeDt: dt, lastTimestamp: timestamp });
 
     if (usesTime) {
-      get().evaluateAll();
+      get().evaluateAll('time');
     }
   },
 
