@@ -6,7 +6,7 @@ import { EdgeComponent } from './Edge';
 
 export const Canvas: React.FC = () => {
   const {
-    nodes, viewport, edges, selectedNodeIds, glowingEdges,
+    nodes, viewport, edges, selectedNodeIds, glowingEdges, rowYPositions,
     addNode, setViewport, clearSelection, execution, setPlaying, stepForward,
   } = useCanvasStore();
 
@@ -274,6 +274,7 @@ export const Canvas: React.FC = () => {
               edge={edge}
               nodes={nodes}
               glowing={glowingEdges.get(`${edge.sourceNodeId}-${edge.targetNodeId}-${edge.symbol}`) || false}
+              rowYPositions={rowYPositions}
             />
           ))}
         </svg>

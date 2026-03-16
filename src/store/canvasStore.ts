@@ -35,6 +35,10 @@ interface CanvasStore {
   // Edge glow: key → 'user' (strong) or 'time' (subtle)
   glowingEdges: Map<string, 'user' | 'time'>;
 
+  // Measured row Y positions: "nodeId:rowIndex" → Y offset from node top
+  rowYPositions: Map<string, number>;
+  setRowYPosition: (nodeId: string, rowIndex: number, y: number) => void;
+
   // Undo
   undoStack: UndoEntry[];
   redoStack: UndoEntry[];
@@ -119,6 +123,17 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   sparklineHistory: new Map(),
   graphHistory: new Map(),
   glowingEdges: new Map(),
+  rowYPositions: new Map(),
+
+  setRowYPosition: (nodeId: string, rowIndex: number, y: number) => {
+    const state = get();
+    const key = `${nodeId}:${rowIndex}`;
+    const current = state.rowYPositions.get(key);
+    if (current === y) return; // avoid unnecessary updates
+    const newMap = new Map(state.rowYPositions);
+    newMap.set(key, y);
+    set({ rowYPositions: newMap });
+  },
 
   execution: {
     mode: 'live',
