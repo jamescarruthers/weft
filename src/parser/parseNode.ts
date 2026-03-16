@@ -1,7 +1,7 @@
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
 import { ParsedRow } from '../types';
-import { parsePragmas } from './pragmas';
+import { parsePragmas, extractComment } from './pragmas';
 import { computeSliderRange } from '../utils/sliderRange';
 
 function getTrailingComment(code: string, node: acorn.Node): string {
@@ -72,22 +72,33 @@ function tryEvalLiteral(node: any): any {
   }
 }
 
-export function parseNodeCode(code: string): { rows: ParsedRow[]; errors: string[] } {
+export function parseNodeCode(code: string): { rows: ParsedRow[]; errors: string[]; title?: string } {
   const rows: ParsedRow[] = [];
   const errors: string[] = [];
 
-  if (!code.trim()) return { rows, errors };
+  if (!code.trim()) return { rows, errors, title: undefined };
+
+  // Check for a leading comment that names the node
+  let title: string | undefined;
+  let codeToParse = code;
+  const titleMatch = code.match(/^\s*\/\/\s*(.+)/);
+  if (titleMatch) {
+    title = titleMatch[1].trim();
+    // Remove the title comment line before parsing
+    codeToParse = code.slice(code.indexOf('\n') + 1);
+    if (!codeToParse.trim()) return { rows, errors, title };
+  }
 
   let ast: acorn.Node;
   try {
-    ast = acorn.parse(code, {
+    ast = acorn.parse(codeToParse, {
       ecmaVersion: 2022,
       sourceType: 'module',
       allowReturnOutsideFunction: true,
     });
   } catch (e: any) {
     errors.push(e.message);
-    return { rows, errors };
+    return { rows, errors, title };
   }
 
   const body = (ast as any).body as any[];
@@ -117,9 +128,10 @@ export function parseNodeCode(code: string): { rows: ParsedRow[]; errors: string
 
   // Second pass: build rows
   for (const stmt of body) {
-    const comment = getTrailingComment(code, stmt);
+    const comment = getTrailingComment(codeToParse, stmt);
     const pragmas = parsePragmas(comment);
-    const stmtCode = code.slice(stmt.start, stmt.end);
+    const displayComment = extractComment(comment);
+    const stmtCode = codeToParse.slice(stmt.start, stmt.end);
 
     if (stmt.type === 'VariableDeclaration') {
       const kind = stmt.kind as 'var' | 'let' | 'const';
@@ -138,6 +150,7 @@ export function parseNodeCode(code: string): { rows: ParsedRow[]; errors: string
                 currentValue: undefined,
                 references: extractReferences(decl.init, declaredNames),
                 pragmas,
+                comment: displayComment,
                 code: stmtCode,
               });
             }
@@ -175,6 +188,7 @@ export function parseNodeCode(code: string): { rows: ParsedRow[]; errors: string
           references: refs,
           range,
           pragmas,
+          comment: displayComment,
           code: stmtCode,
         });
       }
@@ -202,6 +216,7 @@ export function parseNodeCode(code: string): { rows: ParsedRow[]; errors: string
           currentValue: undefined,
           references: refs,
           pragmas,
+          comment: displayComment,
           code: stmtCode,
         });
       } else {
@@ -214,6 +229,7 @@ export function parseNodeCode(code: string): { rows: ParsedRow[]; errors: string
           currentValue: undefined,
           references: refs,
           pragmas,
+          comment: displayComment,
           code: stmtCode,
         });
       }
@@ -232,5 +248,5 @@ export function parseNodeCode(code: string): { rows: ParsedRow[]; errors: string
     }
   }
 
-  return { rows, errors };
+  return { rows, errors, title };
 }

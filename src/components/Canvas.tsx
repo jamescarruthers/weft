@@ -166,6 +166,17 @@ export const Canvas: React.FC = () => {
     return () => clearInterval(interval);
   }, [execution.playing, execution.mode, execution.stepsPerSecond]);
 
+  // Time variable animation loop
+  useEffect(() => {
+    let rafId: number;
+    const loop = (timestamp: number) => {
+      useCanvasStore.getState().tick(timestamp);
+      rafId = requestAnimationFrame(loop);
+    };
+    rafId = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(rafId);
+  }, []);
+
   // Auto-save
   useEffect(() => {
     const timer = setInterval(() => {

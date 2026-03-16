@@ -25,3 +25,16 @@ export function parsePragmas(comment: string): Pragmas {
 
   return pragmas;
 }
+
+export function extractComment(comment: string): string | undefined {
+  if (!comment.trim()) return undefined;
+  // Strip all pragma annotations, leaving just the human-readable comment
+  const cleaned = comment
+    .replace(/@range\([^)]*\)/g, '')
+    .replace(/@log\b/g, '')
+    .replace(/@int\b/g, '')
+    .replace(/@color\b/g, '')
+    .replace(/@hidden\b/g, '')
+    .trim();
+  return cleaned || undefined;
+}

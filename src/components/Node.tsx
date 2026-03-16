@@ -193,6 +193,17 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
             <React.Fragment key={i}>
               {i > 0 && <div style={{ height: '1px', background: theme.surface0 }} />}
               <div className="node-interactive">{renderRow(row, i)}</div>
+              {row.comment && (
+                <div style={{
+                  padding: '0 10px 4px 16px',
+                  color: theme.overlay0,
+                  fontSize: '10px',
+                  fontStyle: 'italic',
+                  lineHeight: 1.3,
+                }}>
+                  {row.comment}
+                </div>
+              )}
             </React.Fragment>
           ))}
           {node.errors.map((err, i) => (
