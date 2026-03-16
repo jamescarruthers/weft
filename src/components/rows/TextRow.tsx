@@ -9,7 +9,7 @@ interface Props {
 
 export const TextRow: React.FC<Props> = ({ row, onChange }) => {
   const debounce = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const stripe = stripeColor(row.kind);
+  const stripe = stripeColor(row.kind, row.pragmas.colour);
   const value = row.currentValue ?? row.initialValue ?? '';
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

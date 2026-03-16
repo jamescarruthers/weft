@@ -8,7 +8,7 @@ interface Props {
 }
 
 export const ToggleRow: React.FC<Props> = ({ row, onChange }) => {
-  const stripe = stripeColor(row.kind);
+  const stripe = stripeColor(row.kind, row.pragmas.colour);
   const value = row.currentValue ?? row.initialValue ?? false;
 
   return (

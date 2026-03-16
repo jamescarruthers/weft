@@ -31,7 +31,7 @@ export const SliderRow: React.FC<Props> = ({ row, onChange }) => {
     setEditing(false);
   };
 
-  const stripe = stripeColor(row.kind);
+  const stripe = stripeColor(row.kind, row.pragmas.colour);
   const fillPct = ((value - range.min) / (range.max - range.min)) * 100;
 
   return (

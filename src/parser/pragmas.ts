@@ -7,7 +7,7 @@ export interface Pragmas {
   range?: { min: number; max: number; step: number };
   log?: boolean;
   int?: boolean;
-  color?: boolean;
+  colour?: string;
   hidden?: boolean;
   sparkline?: boolean;
   graphs?: GraphPragma[];
@@ -28,8 +28,13 @@ export function parsePragmas(comment: string): Pragmas {
 
   if (/@log\b/.test(comment)) pragmas.log = true;
   if (/@int\b/.test(comment)) pragmas.int = true;
-  if (/@color\b/.test(comment)) pragmas.color = true;
   if (/@hidden\b/.test(comment)) pragmas.hidden = true;
+
+  // @colour("red") or @color("red") — match against theme colour names
+  const colourMatch = comment.match(/@colou?r\(\s*"([^"]*)"\s*\)/);
+  if (colourMatch) {
+    pragmas.colour = colourMatch[1].toLowerCase();
+  }
   if (/@sparkline\b/.test(comment)) pragmas.sparkline = true;
 
   const unitMatch = comment.match(/@unit\(\s*"([^"]*)"\s*\)/);
@@ -56,7 +61,7 @@ export function extractComment(comment: string): string | undefined {
     .replace(/@range\([^)]*\)/g, '')
     .replace(/@log\b/g, '')
     .replace(/@int\b/g, '')
-    .replace(/@color\b/g, '')
+    .replace(/@colou?r\([^)]*\)/g, '')
     .replace(/@hidden\b/g, '')
     .replace(/@sparkline\b/g, '')
     .replace(/@unit\([^)]*\)/g, '')

@@ -183,8 +183,8 @@ const frictionForce = friction * normalForce // @unit("N") @sparkline`,
 var angle = 45 // @unit("°") @range(0, 360, 1) @int
 var scale = 1.0 // @range(0.01, 10, 0.01) @log
 var _internal = angle * Math.PI / 180 // @hidden
-const x_pos = scale * cos(_internal)
-const y_pos = scale * sin(_internal) // @graph(x_pos, y_pos)`,
+const x_pos = scale * cos(_internal) // @colour("red")
+const y_pos = scale * sin(_internal) // @colour("blue") @graph(x_pos, y_pos)`,
       position: { x: 380, y: 820 },
       width: 300,
       title: 'Pragma Examples',

@@ -54,6 +54,7 @@ interface CanvasStore {
   updateValue: (nodeId: string, rowIndex: number, value: any) => void;
   selectNode: (id: string, multi?: boolean) => void;
   clearSelection: () => void;
+  clearCanvas: () => void;
   duplicateSelected: () => void;
 
   // Viewport
@@ -282,6 +283,25 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   },
 
   clearSelection: () => set({ selectedNodeIds: new Set() }),
+
+  clearCanvas: () => {
+    set({
+      nodes: new Map(),
+      scope: {},
+      edges: [],
+      dag: null,
+      selectedNodeIds: new Set(),
+      nextNodeNum: 1,
+      sparklineHistory: new Map(),
+      graphHistory: new Map(),
+      glowingEdges: new Map(),
+      rowYPositions: new Map(),
+      undoStack: [],
+      redoStack: [],
+      timeT: 0,
+      timeDt: 0,
+    });
+  },
 
   duplicateSelected: () => {
     const state = get();

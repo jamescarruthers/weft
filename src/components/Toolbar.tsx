@@ -11,7 +11,7 @@ interface Props {
 }
 
 export const Toolbar: React.FC<Props> = ({ minimapVisible, onToggleMinimap, execPanelVisible, onToggleExecPanel }) => {
-  const { viewport, setViewport, exportJSON, importJSON, timeRunning, setTimeRunning, resetTime, timeT } = useCanvasStore();
+  const { viewport, setViewport, exportJSON, importJSON, clearCanvas, timeRunning, setTimeRunning, resetTime, timeT } = useCanvasStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const zoomIn = () => setViewport({ zoom: Math.min(4, viewport.zoom * 1.2) });
@@ -95,6 +95,7 @@ export const Toolbar: React.FC<Props> = ({ minimapVisible, onToggleMinimap, exec
 
       <div style={{ flex: 1 }} />
 
+      {btn('Clear', () => { if (confirm('Clear entire canvas?')) clearCanvas(); })}
       {btn('Demo', () => importJSON(JSON.stringify(demoCanvas)))}
 
       <div style={{ width: '1px', height: '20px', background: theme.surface1 }} />

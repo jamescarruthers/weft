@@ -7,7 +7,7 @@ interface Props {
 }
 
 export const FunctionRow: React.FC<Props> = ({ row }) => {
-  const stripe = stripeColor(row.kind);
+  const stripe = stripeColor(row.kind, row.pragmas.colour);
 
   return (
     <div style={{

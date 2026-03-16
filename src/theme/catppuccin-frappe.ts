@@ -28,7 +28,35 @@ export const theme = {
 
 export type ThemeColor = keyof typeof theme;
 
-export function stripeColor(kind: string): string {
+// Available accent colour names for @colour pragma
+const ACCENT_COLORS: Record<string, string> = {
+  rosewater: theme.rosewater,
+  flamingo: theme.flamingo,
+  pink: theme.pink,
+  mauve: theme.mauve,
+  purple: theme.mauve,
+  red: theme.red,
+  maroon: theme.maroon,
+  peach: theme.peach,
+  orange: theme.peach,
+  yellow: theme.yellow,
+  green: theme.green,
+  teal: theme.teal,
+  sky: theme.sky,
+  sapphire: theme.sapphire,
+  blue: theme.blue,
+  lavender: theme.lavender,
+};
+
+export function resolveThemeColour(name: string): string | undefined {
+  return ACCENT_COLORS[name.toLowerCase()];
+}
+
+export function stripeColor(kind: string, colourOverride?: string): string {
+  if (colourOverride) {
+    const resolved = resolveThemeColour(colourOverride);
+    if (resolved) return resolved;
+  }
   switch (kind) {
     case 'var': return theme.green;
     case 'let': return theme.peach;

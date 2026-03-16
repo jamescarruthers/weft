@@ -267,7 +267,7 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
                   {renderRow(row, i)}
                   {glowingRows.has(i) && (() => {
                     const type = glowingRows.get(i)!;
-                    const color = stripeColor(row.kind);
+                    const color = stripeColor(row.kind, row.pragmas.colour);
                     return (
                       <div style={{
                         position: 'absolute',
