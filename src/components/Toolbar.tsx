@@ -75,7 +75,7 @@ export const Toolbar: React.FC<Props> = ({ minimapVisible, onToggleMinimap, exec
       zIndex: 100,
     }}>
       <span style={{ color: theme.text, fontWeight: 600, fontSize: '12px', fontFamily: "'JetBrains Mono', monospace", marginRight: '12px' }}>
-        Reactive Canvas
+        Weft
       </span>
 
       {btn('-', zoomOut)}

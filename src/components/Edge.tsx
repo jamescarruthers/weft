@@ -29,7 +29,7 @@ export const EdgeComponent: React.FC<Props> = ({ edge, nodes, glowing, rowYPosit
   const cpOffset = Math.max(50, dx * 0.4);
 
   const sourceRow = sourceNode.parsedRows[edge.sourceRowIndex];
-  const color = sourceRow ? stripeColor(sourceRow.kind) : '#8caaee';
+  const color = sourceRow ? stripeColor(sourceRow.kind, sourceRow.pragmas.colour) : '#8caaee';
 
   const path = `M ${srcX} ${srcY} C ${srcX + cpOffset} ${srcY}, ${tgtX - cpOffset} ${tgtY}, ${tgtX} ${tgtY}`;
 
