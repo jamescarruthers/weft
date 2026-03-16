@@ -424,15 +424,16 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     const graphHistory = new Map(state.graphHistory);
     for (const [nodeId, node] of newNodes) {
       for (const row of node.parsedRows) {
-        if (row.pragmas.graph) {
-          const g = row.pragmas.graph;
-          const xVal = g.x === null ? state.timeT : scope[g.x];
-          const yVal = scope[g.y];
-          if (typeof xVal === 'number' && typeof yVal === 'number' && isFinite(xVal) && isFinite(yVal)) {
-            const key = `${nodeId}:${row.name}:graph`;
-            const hist = graphHistory.get(key) || [];
-            const updated = [...hist, { x: xVal, y: yVal }];
-            graphHistory.set(key, updated.length > 200 ? updated.slice(-200) : updated);
+        if (row.pragmas.graphs) {
+          for (const g of row.pragmas.graphs) {
+            const xVal = g.x === null ? state.timeT : scope[g.x];
+            const yVal = scope[g.y];
+            if (typeof xVal === 'number' && typeof yVal === 'number' && isFinite(xVal) && isFinite(yVal)) {
+              const key = `${nodeId}:${row.name}:graph:${g.y}`;
+              const hist = graphHistory.get(key) || [];
+              const updated = [...hist, { x: xVal, y: yVal }];
+              graphHistory.set(key, updated.length > 200 ? updated.slice(-200) : updated);
+            }
           }
         }
       }

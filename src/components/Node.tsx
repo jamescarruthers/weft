@@ -4,7 +4,8 @@ import { theme, stripeColor } from '../theme/catppuccin-frappe';
 import { useCanvasStore } from '../store/canvasStore';
 import { NodeEditor } from './NodeEditor';
 import { Sparkline } from './Sparkline';
-import { Graph } from './Graph';
+import { Graph, getSeriesColor } from './Graph';
+import type { GraphSeries } from './Graph';
 import { SliderRow } from './rows/SliderRow';
 import { TextRow } from './rows/TextRow';
 import { ToggleRow } from './rows/ToggleRow';
@@ -194,8 +195,16 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
           {node.parsedRows.map((row, i) => {
             const histKey = `${node.id}:${row.name}`;
             const hist = row.pragmas.sparkline ? sparklineHistory.get(histKey) : undefined;
-            const graphKey = `${node.id}:${row.name}:graph`;
-            const graphPoints = row.pragmas.graph ? graphHistory.get(graphKey) : undefined;
+            let graphSeries: GraphSeries[] | undefined;
+            let graphXLabel: string | undefined;
+            if (row.pragmas.graphs && row.pragmas.graphs.length > 0) {
+              graphXLabel = row.pragmas.graphs[0].x || 't';
+              graphSeries = row.pragmas.graphs.map((g: { x: string | null; y: string }, gi: number) => ({
+                label: g.y,
+                points: graphHistory.get(`${node.id}:${row.name}:graph:${g.y}`) || [],
+                color: getSeriesColor(gi),
+              }));
+            }
             return (
               <React.Fragment key={i}>
                 {i > 0 && <div style={{ height: '1px', background: theme.surface0 }} />}
@@ -205,14 +214,13 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
                     <Sparkline history={hist} width={node.width - 32} height={14} />
                   </div>
                 )}
-                {row.pragmas.graph && (
+                {graphSeries && (
                   <div style={{ padding: '2px 6px 4px 6px' }}>
                     <Graph
-                      points={graphPoints || []}
+                      series={graphSeries}
                       width={node.width - 18}
                       height={72}
-                      xLabel={row.pragmas.graph.x || 't'}
-                      yLabel={row.pragmas.graph.y}
+                      xLabel={graphXLabel}
                     />
                   </div>
                 )}

@@ -10,7 +10,7 @@ export interface Pragmas {
   color?: boolean;
   hidden?: boolean;
   sparkline?: boolean;
-  graph?: GraphPragma;
+  graphs?: GraphPragma[];
 }
 
 export function parsePragmas(comment: string): Pragmas {
@@ -31,15 +31,15 @@ export function parsePragmas(comment: string): Pragmas {
   if (/@hidden\b/.test(comment)) pragmas.hidden = true;
   if (/@sparkline\b/.test(comment)) pragmas.sparkline = true;
 
-  const graphMatch = comment.match(/@graph\(\s*(\w+)\s*(?:,\s*(\w+)\s*)?\)/);
-  if (graphMatch) {
-    if (graphMatch[2]) {
-      // @graph(x, y)
-      pragmas.graph = { x: graphMatch[1], y: graphMatch[2] };
-    } else {
-      // @graph(y) — use t as x
-      pragmas.graph = { x: null, y: graphMatch[1] };
-    }
+  const graphMatches = [...comment.matchAll(/@graph\(\s*(\w+)\s*(?:,\s*(\w+)\s*)?\)/g)];
+  if (graphMatches.length > 0) {
+    pragmas.graphs = graphMatches.map(m => {
+      if (m[2]) {
+        return { x: m[1], y: m[2] };
+      } else {
+        return { x: null, y: m[1] };
+      }
+    });
   }
 
   return pragmas;
