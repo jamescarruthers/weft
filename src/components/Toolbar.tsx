@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { theme } from '../theme/catppuccin-frappe';
 import { useCanvasStore } from '../store/canvasStore';
 import { demoCanvas } from '../demo';
@@ -11,8 +11,10 @@ interface Props {
 }
 
 export const Toolbar: React.FC<Props> = ({ minimapVisible, onToggleMinimap, execPanelVisible, onToggleExecPanel }) => {
-  const { viewport, setViewport, exportJSON, importJSON, clearCanvas, timeRunning, setTimeRunning, resetTime, timeT } = useCanvasStore();
+  const { viewport, setViewport, zoomToExtents, exportJSON, importJSON, clearCanvas, timeRunning, setTimeRunning, resetTime, timeT, fileName, setFileName } = useCanvasStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [editingName, setEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState(fileName);
 
   const zoomIn = () => setViewport({ zoom: Math.min(4, viewport.zoom * 1.2) });
   const zoomOut = () => setViewport({ zoom: Math.max(0.25, viewport.zoom / 1.2) });
@@ -24,7 +26,7 @@ export const Toolbar: React.FC<Props> = ({ minimapVisible, onToggleMinimap, exec
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'reactive-canvas.json';
+    a.download = `${useCanvasStore.getState().fileName}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -84,6 +86,7 @@ export const Toolbar: React.FC<Props> = ({ minimapVisible, onToggleMinimap, exec
       </span>
       {btn('+', zoomIn)}
       {btn('1:1', zoomReset)}
+      {btn('Fit', zoomToExtents)}
 
       <div style={{ width: '1px', height: '20px', background: theme.surface1 }} />
 
@@ -92,6 +95,38 @@ export const Toolbar: React.FC<Props> = ({ minimapVisible, onToggleMinimap, exec
       <span style={{ color: theme.subtext0, fontSize: '10px', fontFamily: "'JetBrains Mono', monospace", minWidth: '60px' }}>
         t={timeT.toFixed(2)}
       </span>
+
+      <div style={{ flex: 1 }} />
+
+      {editingName ? (
+        <input
+          autoFocus
+          value={nameValue}
+          onChange={e => setNameValue(e.target.value)}
+          onBlur={() => { setFileName(nameValue); setEditingName(false); }}
+          onKeyDown={e => {
+            if (e.key === 'Enter') { setFileName(nameValue); setEditingName(false); }
+            if (e.key === 'Escape') { setNameValue(fileName); setEditingName(false); }
+          }}
+          style={{
+            background: theme.surface0, color: theme.text, border: `1px solid ${theme.surface2}`,
+            borderRadius: '4px', fontSize: '11px', fontFamily: "'JetBrains Mono', monospace",
+            fontWeight: 500, padding: '2px 8px', outline: 'none', textAlign: 'center',
+            width: '160px',
+          }}
+        />
+      ) : (
+        <span
+          onClick={() => { setEditingName(true); setNameValue(fileName); }}
+          style={{
+            color: theme.subtext0, fontSize: '11px', fontFamily: "'JetBrains Mono', monospace",
+            fontWeight: 500, cursor: 'text', padding: '2px 8px',
+            borderRadius: '4px', border: '1px solid transparent',
+          }}
+        >
+          {fileName}
+        </span>
+      )}
 
       <div style={{ flex: 1 }} />
 

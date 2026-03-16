@@ -20,6 +20,7 @@ export interface NodeState {
   collapsed: boolean;
   colorTag: string | null;
   parsedRows: ParsedRow[];
+  noteText?: string;
   editing: boolean;
   status: 'ok' | 'error' | 'computing';
   errors: string[];

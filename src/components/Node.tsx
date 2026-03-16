@@ -118,6 +118,7 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
     }
   });
 
+  const isNote = !!node.noteText;
   const statusColor = node.status === 'error' ? theme.red : node.status === 'computing' ? theme.yellow : theme.green;
 
   const renderRow = (row: typeof node.parsedRows[0], index: number) => {
@@ -154,8 +155,8 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
         left: `${node.position.x}px`,
         top: `${node.position.y}px`,
         width: `${node.width}px`,
-        background: theme.mantle,
-        border: `1px solid ${selected ? theme.sapphire : theme.surface1}`,
+        background: isNote ? theme.crust : theme.mantle,
+        border: `1px solid ${selected ? theme.sapphire : isNote ? theme.surface0 : theme.surface1}`,
         borderWidth: selected ? '2px' : '1px',
         borderRadius: '8px',
         boxShadow: selected
@@ -177,10 +178,14 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
         cursor: 'grab', fontSize: '11px', fontWeight: 600,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
-          <div style={{
-            width: '8px', height: '8px', borderRadius: '50%', background: statusColor,
-            flexShrink: 0,
-          }} />
+          {isNote ? (
+            <span style={{ fontSize: '10px', flexShrink: 0, color: theme.overlay0 }}>📝</span>
+          ) : (
+            <div style={{
+              width: '8px', height: '8px', borderRadius: '50%', background: statusColor,
+              flexShrink: 0,
+            }} />
+          )}
           {editingTitle ? (
             <input
               className="node-interactive"
@@ -233,6 +238,17 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
             onSave={handleSaveCode}
             onCancel={handleCancelEdit}
           />
+        </div>
+      ) : isNote ? (
+        <div style={{
+          padding: '8px 12px',
+          color: theme.subtext0,
+          fontSize: '11px',
+          lineHeight: 1.5,
+          fontStyle: 'italic',
+          whiteSpace: 'pre-wrap',
+        }}>
+          {node.noteText}
         </div>
       ) : (
         <div>

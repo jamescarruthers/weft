@@ -72,11 +72,23 @@ function tryEvalLiteral(node: any): any {
   }
 }
 
-export function parseNodeCode(code: string): { rows: ParsedRow[]; errors: string[]; title?: string } {
+export function parseNodeCode(code: string): { rows: ParsedRow[]; errors: string[]; title?: string; noteText?: string } {
   const rows: ParsedRow[] = [];
   const errors: string[] = [];
 
   if (!code.trim()) return { rows, errors, title: undefined };
+
+  // Check if the entire code is comments — treat as a note
+  const lines = code.split('\n');
+  const nonEmpty = lines.filter(l => l.trim().length > 0);
+  const allComments = nonEmpty.length > 0 && nonEmpty.every(l => /^\s*\/\//.test(l));
+
+  if (allComments) {
+    const commentLines = nonEmpty.map(l => l.replace(/^\s*\/\/\s?/, ''));
+    const title = commentLines[0];
+    const noteText = commentLines.length > 1 ? commentLines.slice(1).join('\n') : undefined;
+    return { rows, errors, title, noteText };
+  }
 
   // Check for a leading comment that names the node
   let title: string | undefined;
