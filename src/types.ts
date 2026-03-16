@@ -7,6 +7,7 @@ export interface ParsedRow {
   references: string[];
   range?: { min: number; max: number; step: number; log?: boolean };
   pragmas: Record<string, any>;
+  comment?: string;
   code: string;
 }
 

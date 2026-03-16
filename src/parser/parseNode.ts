@@ -1,7 +1,7 @@
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
 import { ParsedRow } from '../types';
-import { parsePragmas } from './pragmas';
+import { parsePragmas, extractComment } from './pragmas';
 import { computeSliderRange } from '../utils/sliderRange';
 
 function getTrailingComment(code: string, node: acorn.Node): string {
@@ -130,6 +130,7 @@ export function parseNodeCode(code: string): { rows: ParsedRow[]; errors: string
   for (const stmt of body) {
     const comment = getTrailingComment(codeToParse, stmt);
     const pragmas = parsePragmas(comment);
+    const displayComment = extractComment(comment);
     const stmtCode = codeToParse.slice(stmt.start, stmt.end);
 
     if (stmt.type === 'VariableDeclaration') {
@@ -149,6 +150,7 @@ export function parseNodeCode(code: string): { rows: ParsedRow[]; errors: string
                 currentValue: undefined,
                 references: extractReferences(decl.init, declaredNames),
                 pragmas,
+                comment: displayComment,
                 code: stmtCode,
               });
             }
@@ -186,6 +188,7 @@ export function parseNodeCode(code: string): { rows: ParsedRow[]; errors: string
           references: refs,
           range,
           pragmas,
+          comment: displayComment,
           code: stmtCode,
         });
       }
@@ -213,6 +216,7 @@ export function parseNodeCode(code: string): { rows: ParsedRow[]; errors: string
           currentValue: undefined,
           references: refs,
           pragmas,
+          comment: displayComment,
           code: stmtCode,
         });
       } else {
@@ -225,6 +229,7 @@ export function parseNodeCode(code: string): { rows: ParsedRow[]; errors: string
           currentValue: undefined,
           references: refs,
           pragmas,
+          comment: displayComment,
           code: stmtCode,
         });
       }
