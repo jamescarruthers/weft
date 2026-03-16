@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { theme } from '../theme/catppuccin-frappe';
 import { useCanvasStore } from '../store/canvasStore';
+import { demoCanvas } from '../demo';
 
 interface Props {
   minimapVisible: boolean;
@@ -93,6 +94,10 @@ export const Toolbar: React.FC<Props> = ({ minimapVisible, onToggleMinimap, exec
       </span>
 
       <div style={{ flex: 1 }} />
+
+      {btn('Demo', () => importJSON(JSON.stringify(demoCanvas)))}
+
+      <div style={{ width: '1px', height: '20px', background: theme.surface1 }} />
 
       {btn('Minimap', onToggleMinimap, minimapVisible)}
       {btn('Exec', onToggleExecPanel, execPanelVisible)}
