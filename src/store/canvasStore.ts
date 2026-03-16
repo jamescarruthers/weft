@@ -379,10 +379,10 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
         }
 
         const returnObj = symbolsWritten.length > 0
-          ? `; return { ${symbolsWritten.map(s => `"${s}": typeof ${s} !== 'undefined' ? ${s} : undefined`).join(', ')} };`
+          ? `\nreturn { ${symbolsWritten.map(s => `"${s}": typeof ${s} !== 'undefined' ? ${s} : undefined`).join(', ')} };`
           : '';
 
-        const fn = new Function('__scope__', `with(__scope__) { ${node.code}${returnObj} }`);
+        const fn = new Function('__scope__', `with(__scope__) { ${node.code}\n${returnObj} }`);
         const result = fn(scope);
 
         if (result) {

@@ -7,7 +7,7 @@ function compileStep(code: string, symbolsWritten: string[]): ((scope: Record<st
       ? `return { ${symbolsWritten.map(s => `${JSON.stringify(s)}: typeof ${s} !== 'undefined' ? ${s} : undefined`).join(', ')} };`
       : '';
 
-    const fnBody = `with(__scope__) { ${code}; ${returnObj} }`;
+    const fnBody = `with(__scope__) { ${code}\n${returnObj} }`;
     return new Function('__scope__', fnBody) as any;
   } catch {
     return null;
