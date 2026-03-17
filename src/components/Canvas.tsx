@@ -154,8 +154,19 @@ export const Canvas: React.FC = () => {
       const state = useCanvasStore.getState();
       const exec = state.execution;
       if (exec.currentStep >= exec.sequence.length) {
-        if (exec.looping) {
-          state.jumpToStart();
+        if (exec.looping && (exec.maxLoops === 0 || exec.loopCount + 1 < exec.maxLoops)) {
+          // Reset to start but preserve loop count
+          const newNodes = new Map(state.nodes);
+          for (const [id, node] of newNodes) {
+            const newRows = node.parsedRows.map(row => ({ ...row, currentValue: null }));
+            newNodes.set(id, { ...node, parsedRows: newRows });
+          }
+          const resetSequence = exec.sequence.map(s => ({ ...s, status: 'pending' as const }));
+          useCanvasStore.setState({
+            scope: {},
+            nodes: newNodes,
+            execution: { ...exec, currentStep: 0, loopCount: exec.loopCount + 1, sequence: resetSequence, snapshots: new Map() },
+          });
         } else {
           state.setPlaying(false);
         }

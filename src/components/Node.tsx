@@ -25,6 +25,7 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
     deleteNode, updateValue, selectNode, pushUndo, sparklineHistory, graphHistory,
     edges, glowingEdges, setRowYPosition,
   } = useCanvasStore();
+  const execution = useCanvasStore(s => s.execution);
 
   const dragRef = useRef<{ startX: number; startY: number; nodeX: number; nodeY: number } | null>(null);
   const nodeRef = useRef<HTMLDivElement>(null);
@@ -118,6 +119,14 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
     }
   });
 
+  // Determine active execution step for this node
+  const activeStep = useMemo(() => {
+    if (execution.mode !== 'stepped') return null;
+    const step = execution.sequence[execution.currentStep];
+    if (!step || step.nodeId !== node.id) return null;
+    return step;
+  }, [execution.mode, execution.sequence, execution.currentStep, node.id]);
+
   const isNote = !!node.noteText;
   const statusColor = node.status === 'error' ? theme.red : node.status === 'computing' ? theme.yellow : theme.green;
 
@@ -156,12 +165,14 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
         top: `${node.position.y}px`,
         width: `${node.width}px`,
         background: isNote ? theme.crust : theme.mantle,
-        border: `1px solid ${selected ? theme.sapphire : isNote ? theme.surface0 : theme.surface1}`,
-        borderWidth: selected ? '2px' : '1px',
+        border: `1px solid ${activeStep ? theme.sapphire : selected ? theme.sapphire : isNote ? theme.surface0 : theme.surface1}`,
+        borderWidth: selected || activeStep ? '2px' : '1px',
         borderRadius: '8px',
-        boxShadow: selected
-          ? `0 4px 16px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.3)`
-          : `0 2px 8px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2)`,
+        boxShadow: activeStep
+          ? `0 0 12px 2px ${theme.sapphire}44, 0 4px 16px rgba(0,0,0,0.4)`
+          : selected
+            ? `0 4px 16px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.3)`
+            : `0 2px 8px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2)`,
         fontFamily: "'JetBrains Mono', monospace",
         overflow: 'hidden',
         cursor: 'default',
@@ -278,7 +289,13 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
                 <div
                   className="node-interactive"
                   ref={el => { if (el) rowRefs.current.set(i, el); else rowRefs.current.delete(i); }}
-                  style={{ position: 'relative' }}
+                  style={{
+                    position: 'relative',
+                    background: activeStep && activeStep.lineIndex === i
+                      ? `${theme.sapphire}18`
+                      : 'transparent',
+                    transition: 'background 0.15s',
+                  }}
                 >
                   {renderRow(row, i)}
                   {glowingRows.has(i) && (() => {

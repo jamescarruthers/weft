@@ -6,7 +6,7 @@ export const TransportBar: React.FC = () => {
   const execution = useCanvasStore(s => s.execution);
   const {
     setExecutionMode, setGranularity, stepForward, stepBack,
-    setPlaying, setLooping, setStepsPerSecond, jumpToStart, jumpToEnd,
+    setPlaying, setLooping, setMaxLoops, setStepsPerSecond, jumpToStart, jumpToEnd,
   } = useCanvasStore();
 
   const total = execution.sequence.length;
@@ -102,6 +102,27 @@ export const TransportBar: React.FC = () => {
 
       {/* Loop */}
       {btn(execution.looping ? '🔁' : '↻', () => setLooping(!execution.looping), execution.looping)}
+      {execution.looping && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <span style={{ color: theme.subtext0, fontSize: '10px' }}>
+            {execution.loopCount}{execution.maxLoops > 0 ? `/${execution.maxLoops}` : ''}
+          </span>
+          <span style={{ color: theme.overlay0, fontSize: '10px' }}>max:</span>
+          <input
+            type="number"
+            min={0}
+            value={execution.maxLoops}
+            onChange={e => setMaxLoops(parseInt(e.target.value) || 0)}
+            title="Max loops (0 = infinite)"
+            style={{
+              width: '36px', background: theme.surface0, color: theme.text,
+              border: `1px solid ${theme.surface1}`, borderRadius: '4px',
+              fontSize: '10px', fontFamily: 'inherit', padding: '2px 4px',
+              outline: 'none', textAlign: 'center',
+            }}
+          />
+        </div>
+      )}
 
       {/* Speed */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
