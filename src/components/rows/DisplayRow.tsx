@@ -9,7 +9,8 @@ interface Props {
 
 export const DisplayRow: React.FC<Props> = ({ row }) => {
   const stripe = stripeColor(row.kind, row.pragmas.colour);
-  const value = row.currentValue ?? row.initialValue;
+  const isNull = row.currentValue === null;
+  const value = isNull ? null : (row.currentValue ?? row.initialValue);
   const isConst = row.kind === 'const';
 
   return (
@@ -28,12 +29,13 @@ export const DisplayRow: React.FC<Props> = ({ row }) => {
         {row.name}
       </span>
       <span style={{
-        color: isConst ? theme.subtext0 : theme.text,
+        color: isNull ? theme.overlay0 : isConst ? theme.subtext0 : theme.text,
         fontSize: '12px', fontWeight: 600,
+        fontStyle: isNull ? 'italic' : 'normal',
         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         maxWidth: '150px',
       }}>
-        {formatValue(value)}{row.pragmas.unit ? <span style={{ color: theme.overlay0, fontWeight: 400, marginLeft: '3px' }}>{row.pragmas.unit}</span> : null}
+        {isNull ? 'null' : <>{formatValue(value)}{row.pragmas.unit ? <span style={{ color: theme.overlay0, fontWeight: 400, marginLeft: '3px' }}>{row.pragmas.unit}</span> : null}</>}
       </span>
     </div>
   );

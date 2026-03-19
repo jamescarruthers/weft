@@ -10,7 +10,8 @@ interface Props {
 export const TextRow: React.FC<Props> = ({ row, onChange }) => {
   const debounce = useRef<ReturnType<typeof setTimeout>>(undefined);
   const stripe = stripeColor(row.kind, row.pragmas.colour);
-  const value = row.currentValue ?? row.initialValue ?? '';
+  const isNull = row.currentValue === null;
+  const value = isNull ? '' : (row.currentValue ?? row.initialValue ?? '');
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -27,16 +28,20 @@ export const TextRow: React.FC<Props> = ({ row, onChange }) => {
       alignItems: 'center',
     }}>
       <span style={{ color: theme.text, fontSize: '12px', fontWeight: 500 }}>{row.name}</span>
-      <input
-        defaultValue={value}
-        onChange={handleChange}
-        style={{
-          maxWidth: '120px', background: theme.surface0, color: theme.text,
-          border: `1px solid ${theme.surface2}`, borderRadius: '4px',
-          fontSize: '12px', fontFamily: 'inherit', padding: '2px 6px',
-          outline: 'none',
-        }}
-      />
+      {isNull ? (
+        <span style={{ color: theme.overlay0, fontSize: '12px', fontStyle: 'italic' }}>null</span>
+      ) : (
+        <input
+          defaultValue={value}
+          onChange={handleChange}
+          style={{
+            maxWidth: '120px', background: theme.surface0, color: theme.text,
+            border: `1px solid ${theme.surface2}`, borderRadius: '4px',
+            fontSize: '12px', fontFamily: 'inherit', padding: '2px 6px',
+            outline: 'none',
+          }}
+        />
+      )}
     </div>
   );
 };

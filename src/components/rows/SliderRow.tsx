@@ -13,7 +13,8 @@ export const SliderRow: React.FC<Props> = ({ row, onChange }) => {
   const [editValue, setEditValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const range = row.range || { min: 0, max: 100, step: 1 };
-  const value = row.currentValue ?? row.initialValue ?? 0;
+  const isNull = row.currentValue === null;
+  const value = isNull ? (row.initialValue ?? 0) : (row.currentValue ?? row.initialValue ?? 0);
 
   const handleSlider = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(parseFloat(e.target.value));
@@ -60,10 +61,10 @@ export const SliderRow: React.FC<Props> = ({ row, onChange }) => {
           />
         ) : (
           <span
-            style={{ color: theme.peach, fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
-            onClick={handleValueClick}
+            style={{ color: isNull ? theme.overlay0 : theme.peach, fontSize: '12px', fontWeight: 600, cursor: isNull ? 'default' : 'pointer', fontStyle: isNull ? 'italic' : 'normal' }}
+            onClick={isNull ? undefined : handleValueClick}
           >
-            {formatNumber(value)}{row.pragmas.unit ? <span style={{ color: theme.overlay0, fontWeight: 400, marginLeft: '3px' }}>{row.pragmas.unit}</span> : null}
+            {isNull ? 'null' : <>{formatNumber(value)}{row.pragmas.unit ? <span style={{ color: theme.overlay0, fontWeight: 400, marginLeft: '3px' }}>{row.pragmas.unit}</span> : null}</>}
           </span>
         )}
       </div>
@@ -74,15 +75,19 @@ export const SliderRow: React.FC<Props> = ({ row, onChange }) => {
         step={range.step}
         value={value}
         onChange={handleSlider}
+        disabled={isNull}
         style={{
           width: '100%',
           height: '4px',
           WebkitAppearance: 'none',
           appearance: 'none',
-          background: `linear-gradient(to right, ${theme.green} ${fillPct}%, ${theme.surface0} ${fillPct}%)`,
+          background: isNull
+            ? theme.surface0
+            : `linear-gradient(to right, ${theme.green} ${fillPct}%, ${theme.surface0} ${fillPct}%)`,
           borderRadius: '2px',
           outline: 'none',
-          cursor: 'pointer',
+          cursor: isNull ? 'default' : 'pointer',
+          opacity: isNull ? 0.4 : 1,
         }}
       />
     </div>

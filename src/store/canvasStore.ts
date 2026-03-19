@@ -78,6 +78,7 @@ interface CanvasStore {
   jumpToStep: (step: number) => void;
   setPlaying: (playing: boolean) => void;
   setLooping: (looping: boolean) => void;
+  setMaxLoops: (maxLoops: number) => void;
   setStepsPerSecond: (sps: number) => void;
   jumpToStart: () => void;
   jumpToEnd: () => void;
@@ -153,6 +154,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     looping: false,
     stepsPerSecond: 4,
     loopCount: 0,
+    maxLoops: 0,
     snapshots: new Map(),
     snapshotInterval: 1,
   },
@@ -594,8 +596,21 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 
   setExecutionMode: (mode) => {
     const state = get();
-    set({ execution: { ...state.execution, mode, currentStep: 0, playing: false } });
-    if (mode === 'live') {
+    if (mode === 'stepped') {
+      // Null out all currentValues so uncomputed vars show as null
+      const newNodes = new Map(state.nodes);
+      for (const [id, node] of newNodes) {
+        const newRows = node.parsedRows.map(row => ({ ...row, currentValue: null }));
+        newNodes.set(id, { ...node, parsedRows: newRows });
+      }
+      const resetSequence = state.execution.sequence.map(s => ({ ...s, status: 'pending' as const }));
+      set({
+        nodes: newNodes,
+        scope: {},
+        execution: { ...state.execution, mode, currentStep: 0, playing: false, loopCount: 0, sequence: resetSequence, snapshots: new Map() },
+      });
+    } else {
+      set({ execution: { ...state.execution, mode, currentStep: 0, playing: false } });
       get().evaluateAll();
     }
   },
@@ -610,12 +625,23 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     const state = get();
     const exec = state.execution;
     if (exec.currentStep >= exec.sequence.length) {
-      if (exec.looping) {
+      if (exec.looping && (exec.maxLoops === 0 || exec.loopCount + 1 < exec.maxLoops)) {
+        // Reset rows to null and restart
+        const newNodes = new Map(state.nodes);
+        for (const [id, node] of newNodes) {
+          const newRows = node.parsedRows.map(row => ({ ...row, currentValue: null }));
+          newNodes.set(id, { ...node, parsedRows: newRows });
+        }
+        const resetSequence = exec.sequence.map(s => ({ ...s, status: 'pending' as const }));
         set({
+          scope: {},
+          nodes: newNodes,
           execution: {
             ...exec,
             currentStep: 0,
             loopCount: exec.loopCount + 1,
+            sequence: resetSequence,
+            snapshots: new Map(),
           },
         });
         return;
@@ -690,20 +716,8 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     if (exec.currentStep <= 0) return;
 
     const newStep = exec.currentStep - 1;
-    // Restore from snapshot or re-evaluate from start
-    const snapshot = exec.snapshots.get(newStep - 1);
-    if (snapshot) {
-      set({
-        scope: cloneScope(snapshot),
-        execution: { ...exec, currentStep: newStep },
-      });
-    } else {
-      // Re-evaluate from start up to newStep
-      set({ execution: { ...exec, currentStep: 0 } });
-      for (let i = 0; i < newStep; i++) {
-        get().stepForward();
-      }
-    }
+    // Re-evaluate from start to newStep (ensures node rows are correctly updated)
+    get().jumpToStep(newStep);
   },
 
   jumpToStep: (step: number) => {
@@ -711,10 +725,17 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     const exec = state.execution;
     const targetStep = Math.max(0, Math.min(step, exec.sequence.length));
 
-    // Reset and replay
+    // Null out all values and reset statuses
+    const newNodes = new Map(state.nodes);
+    for (const [id, node] of newNodes) {
+      const newRows = node.parsedRows.map(row => ({ ...row, currentValue: null }));
+      newNodes.set(id, { ...node, parsedRows: newRows });
+    }
+    const resetSequence = exec.sequence.map(s => ({ ...s, status: 'pending' as const }));
     set({
       scope: {},
-      execution: { ...exec, currentStep: 0 },
+      nodes: newNodes,
+      execution: { ...exec, currentStep: 0, sequence: resetSequence, snapshots: new Map() },
     });
     for (let i = 0; i < targetStep; i++) {
       get().stepForward();
@@ -731,6 +752,11 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     set({ execution: { ...state.execution, looping } });
   },
 
+  setMaxLoops: (maxLoops: number) => {
+    const state = get();
+    set({ execution: { ...state.execution, maxLoops: Math.max(0, maxLoops) } });
+  },
+
   setStepsPerSecond: (sps) => {
     const state = get();
     set({ execution: { ...state.execution, stepsPerSecond: Math.max(0.5, Math.min(60, sps)) } });
@@ -738,18 +764,33 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 
   jumpToStart: () => {
     const state = get();
+    // Null out all currentValues so uncomputed vars show as null
+    const newNodes = new Map(state.nodes);
+    for (const [id, node] of newNodes) {
+      const newRows = node.parsedRows.map(row => ({ ...row, currentValue: null }));
+      newNodes.set(id, { ...node, parsedRows: newRows });
+    }
+    const resetSequence = state.execution.sequence.map(s => ({ ...s, status: 'pending' as const }));
     set({
       scope: {},
-      execution: { ...state.execution, currentStep: 0, playing: false },
+      nodes: newNodes,
+      execution: { ...state.execution, currentStep: 0, playing: false, loopCount: 0, sequence: resetSequence, snapshots: new Map() },
     });
   },
 
   jumpToEnd: () => {
     const state = get();
     const exec = state.execution;
+    const newNodes = new Map(state.nodes);
+    for (const [id, node] of newNodes) {
+      const newRows = node.parsedRows.map(row => ({ ...row, currentValue: null }));
+      newNodes.set(id, { ...node, parsedRows: newRows });
+    }
+    const resetSequence = exec.sequence.map(s => ({ ...s, status: 'pending' as const }));
     set({
       scope: {},
-      execution: { ...exec, currentStep: 0 },
+      nodes: newNodes,
+      execution: { ...exec, currentStep: 0, sequence: resetSequence, snapshots: new Map() },
     });
     for (let i = 0; i < exec.sequence.length; i++) {
       get().stepForward();

@@ -54,6 +54,7 @@ export interface ExecutionState {
   looping: boolean;
   stepsPerSecond: number;
   loopCount: number;
+  maxLoops: number;
   snapshots: Map<number, Record<string, any>>;
   snapshotInterval: number;
 }

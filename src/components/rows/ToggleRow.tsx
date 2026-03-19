@@ -9,7 +9,8 @@ interface Props {
 
 export const ToggleRow: React.FC<Props> = ({ row, onChange }) => {
   const stripe = stripeColor(row.kind, row.pragmas.colour);
-  const value = row.currentValue ?? row.initialValue ?? false;
+  const isNull = row.currentValue === null;
+  const value = isNull ? false : (row.currentValue ?? row.initialValue ?? false);
 
   return (
     <div style={{
@@ -20,21 +21,25 @@ export const ToggleRow: React.FC<Props> = ({ row, onChange }) => {
       alignItems: 'center',
     }}>
       <span style={{ color: theme.text, fontSize: '12px', fontWeight: 500 }}>{row.name}</span>
-      <button
-        onClick={() => onChange(!value)}
-        style={{
-          width: '36px', height: '20px', borderRadius: '10px', border: 'none',
-          background: value ? theme.green : theme.surface2,
-          cursor: 'pointer', position: 'relative', transition: 'background 0.15s',
-        }}
-      >
-        <div style={{
-          width: '16px', height: '16px', borderRadius: '50%', background: '#fff',
-          position: 'absolute', top: '2px',
-          left: value ? '18px' : '2px',
-          transition: 'left 0.15s',
-        }} />
-      </button>
+      {isNull ? (
+        <span style={{ color: theme.overlay0, fontSize: '12px', fontStyle: 'italic' }}>null</span>
+      ) : (
+        <button
+          onClick={() => onChange(!value)}
+          style={{
+            width: '36px', height: '20px', borderRadius: '10px', border: 'none',
+            background: value ? theme.green : theme.surface2,
+            cursor: 'pointer', position: 'relative', transition: 'background 0.15s',
+          }}
+        >
+          <div style={{
+            width: '16px', height: '16px', borderRadius: '50%', background: '#fff',
+            position: 'absolute', top: '2px',
+            left: value ? '18px' : '2px',
+            transition: 'left 0.15s',
+          }} />
+        </button>
+      )}
     </div>
   );
 };
