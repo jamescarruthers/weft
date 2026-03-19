@@ -26,6 +26,16 @@ export const theme = {
   lavender: '#babbf1',
 } as const;
 
+// Grid system — matches dot grid spacing
+export const GRID = 16;
+export const ROW_HEIGHT = 32;      // 2 grid units — standard row
+export const HEADER_HEIGHT = 32;   // 2 grid units — node header
+export const SLIDER_HEIGHT = 48;   // 3 grid units — slider row (label + slider)
+
+export function snapToGrid(v: number): number {
+  return Math.round(v / GRID) * GRID;
+}
+
 export type ThemeColor = keyof typeof theme;
 
 // Available accent colour names for @colour pragma

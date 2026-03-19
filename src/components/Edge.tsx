@@ -9,8 +9,8 @@ interface Props {
   rowYPositions: Map<string, number>;
 }
 
-// Fallback: header(23) + border(1) + half simple row(14)
-const FALLBACK_Y = 38;
+// Fallback: header(32) + half row(16)
+const FALLBACK_Y = 48;
 
 export const EdgeComponent: React.FC<Props> = ({ edge, nodes, glowing, rowYPositions }) => {
   const sourceNode = nodes.get(edge.sourceNodeId);

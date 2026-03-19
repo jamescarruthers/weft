@@ -38,9 +38,12 @@ export const SliderRow: React.FC<Props> = ({ row, onChange }) => {
   return (
     <div style={{
       borderLeft: `3px solid ${stripe}`,
-      padding: '6px 10px',
+      padding: '4px 10px',
+      height: '48px',
+      boxSizing: 'border-box',
       display: 'flex',
       flexDirection: 'column',
+      justifyContent: 'center',
       gap: '4px',
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -54,14 +57,14 @@ export const SliderRow: React.FC<Props> = ({ row, onChange }) => {
             onKeyDown={e => { if (e.key === 'Enter') commitEdit(); if (e.key === 'Escape') setEditing(false); }}
             style={{
               width: '60px', textAlign: 'right', background: theme.surface0,
-              color: theme.peach, border: `1px solid ${theme.surface2}`, borderRadius: '4px',
+              color: stripe, border: `1px solid ${theme.surface2}`, borderRadius: '4px',
               fontSize: '12px', fontWeight: 600, fontFamily: 'inherit', padding: '1px 4px',
               outline: 'none',
             }}
           />
         ) : (
           <span
-            style={{ color: isNull ? theme.overlay0 : theme.peach, fontSize: '12px', fontWeight: 600, cursor: isNull ? 'default' : 'pointer', fontStyle: isNull ? 'italic' : 'normal' }}
+            style={{ color: isNull ? theme.overlay0 : stripe, fontSize: '12px', fontWeight: 600, cursor: isNull ? 'default' : 'pointer', fontStyle: isNull ? 'italic' : 'normal' }}
             onClick={isNull ? undefined : handleValueClick}
           >
             {isNull ? 'null' : <>{formatNumber(value)}{row.pragmas.unit ? <span style={{ color: theme.overlay0, fontWeight: 400, marginLeft: '3px' }}>{row.pragmas.unit}</span> : null}</>}
@@ -83,7 +86,7 @@ export const SliderRow: React.FC<Props> = ({ row, onChange }) => {
           appearance: 'none',
           background: isNull
             ? theme.surface0
-            : `linear-gradient(to right, ${theme.green} ${fillPct}%, ${theme.surface0} ${fillPct}%)`,
+            : `linear-gradient(to right, ${stripe} ${fillPct}%, ${theme.surface0} ${fillPct}%)`,
           borderRadius: '2px',
           outline: 'none',
           cursor: isNull ? 'default' : 'pointer',

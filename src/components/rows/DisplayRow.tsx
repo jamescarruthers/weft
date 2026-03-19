@@ -16,7 +16,9 @@ export const DisplayRow: React.FC<Props> = ({ row }) => {
   return (
     <div style={{
       borderLeft: `3px solid ${stripe}`,
-      padding: '6px 10px',
+      padding: '0 10px',
+      height: '32px',
+      boxSizing: 'border-box',
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
@@ -29,7 +31,7 @@ export const DisplayRow: React.FC<Props> = ({ row }) => {
         {row.name}
       </span>
       <span style={{
-        color: isNull ? theme.overlay0 : isConst ? theme.subtext0 : theme.text,
+        color: isNull ? theme.overlay0 : stripe,
         fontSize: '12px', fontWeight: 600,
         fontStyle: isNull ? 'italic' : 'normal',
         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',

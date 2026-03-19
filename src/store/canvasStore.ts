@@ -3,6 +3,7 @@ import { NodeState, EdgeInfo, CanvasViewport, ExecutionState, ExecutionStep } fr
 import { parseNodeCode } from '../parser/parseNode';
 import { buildDag, DagResult } from '../parser/dag';
 import { buildSequence } from '../parser/sequencer';
+import { snapToGrid, GRID, HEADER_HEIGHT, ROW_HEIGHT } from '../theme/catppuccin-frappe';
 
 interface UndoEntry {
   nodes: Map<string, NodeState>;
@@ -169,8 +170,8 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     const node: NodeState = {
       id,
       code: '',
-      position: { x, y },
-      width: 260,
+      position: { x: snapToGrid(x), y: snapToGrid(y) },
+      width: 256,
       title: `Node ${num}`,
       collapsed: false,
       colorTag: null,
@@ -231,7 +232,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     const node = state.nodes.get(id);
     if (!node) return;
     const newNodes = new Map(state.nodes);
-    newNodes.set(id, { ...node, position: { x, y } });
+    newNodes.set(id, { ...node, position: { x: snapToGrid(x), y: snapToGrid(y) } });
     set({ nodes: newNodes });
   },
 
@@ -240,7 +241,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     const node = state.nodes.get(id);
     if (!node) return;
     const newNodes = new Map(state.nodes);
-    newNodes.set(id, { ...node, width: Math.max(200, Math.min(400, width)) });
+    newNodes.set(id, { ...node, width: snapToGrid(Math.max(192, Math.min(400, width))) });
     set({ nodes: newNodes });
   },
 
@@ -358,7 +359,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
       minY = Math.min(minY, n.position.y);
       maxX = Math.max(maxX, n.position.x + n.width);
       const rowCount = Math.max(1, n.parsedRows.length);
-      const estimatedH = 23 + rowCount * 32 + (n.noteText ? 40 : 0);
+      const estimatedH = HEADER_HEIGHT + rowCount * ROW_HEIGHT + (n.noteText ? 48 : 0);
       maxY = Math.max(maxY, n.position.y + estimatedH);
     }
 
@@ -920,8 +921,8 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
         newNodes.set(n.id, {
           id: n.id,
           code: n.code,
-          position: n.position,
-          width: n.width || 260,
+          position: { x: snapToGrid(n.position.x), y: snapToGrid(n.position.y) },
+          width: snapToGrid(n.width || 256),
           title: commentTitle || n.title || 'Node',
           collapsed: n.collapsed || false,
           colorTag: n.colorTag || null,
