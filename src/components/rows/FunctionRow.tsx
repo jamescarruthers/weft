@@ -12,14 +12,19 @@ export const FunctionRow: React.FC<Props> = ({ row }) => {
   return (
     <div style={{
       borderLeft: `3px solid ${stripe}`,
-      padding: '6px 10px',
+      padding: '0 10px',
+      height: '32px',
+      boxSizing: 'border-box',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
     }}>
-      <div style={{ color: theme.text, fontSize: '12px', fontWeight: 500, fontFamily: 'inherit' }}>
+      <span style={{ color: theme.text, fontSize: '12px', fontWeight: 500, fontFamily: 'inherit' }}>
         {row.name}
-      </div>
-      <div style={{ color: theme.subtext0, fontSize: '11px', marginTop: '2px' }}>
+      </span>
+      <span style={{ color: theme.subtext0, fontSize: '11px' }}>
         → ƒ {row.name}
-      </div>
+      </span>
     </div>
   );
 };

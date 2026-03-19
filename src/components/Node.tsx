@@ -185,7 +185,8 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
       {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '4px 8px', background: theme.crust, borderBottom: `1px solid ${theme.surface0}`,
+        padding: '0 8px', height: '31px', boxSizing: 'border-box',
+        background: theme.crust, borderBottom: `1px solid ${theme.surface0}`,
         cursor: 'grab', fontSize: '11px', fontWeight: 600,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
@@ -264,7 +265,7 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
       ) : (
         <div>
           {node.parsedRows.length === 0 && node.errors.length === 0 && (
-            <div style={{ padding: '12px', color: theme.overlay0, fontSize: '11px', textAlign: 'center' }}>
+            <div style={{ padding: '0 12px', height: '32px', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', color: theme.overlay0, fontSize: '11px' }}>
               Double-click to edit
             </div>
           )}
@@ -285,12 +286,12 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
             }
             return (
               <React.Fragment key={i}>
-                {i > 0 && <div style={{ height: '1px', background: theme.surface0 }} />}
                 <div
                   className="node-interactive"
                   ref={el => { if (el) rowRefs.current.set(i, el); else rowRefs.current.delete(i); }}
                   style={{
                     position: 'relative',
+                    borderTop: i > 0 ? `1px solid ${theme.surface0}` : 'none',
                     background: activeStep && activeStep.lineIndex === i
                       ? `${theme.sapphire}18`
                       : 'transparent',
@@ -329,27 +330,30 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
                   )}
                 </div>
                 {hist && hist.length >= 2 && (
-                  <div style={{ padding: '0 10px 2px 16px' }}>
-                    <Sparkline history={hist} width={node.width - 32} height={14} />
+                  <div style={{ padding: '0 10px 1px 16px', height: '16px', boxSizing: 'border-box' }}>
+                    <Sparkline history={hist} width={node.width - 32} height={15} />
                   </div>
                 )}
                 {graphSeries && (
-                  <div style={{ padding: '2px 6px 4px 6px' }}>
+                  <div style={{ padding: '2px 6px 2px 6px', height: '80px', boxSizing: 'border-box' }}>
                     <Graph
                       series={graphSeries}
                       width={node.width - 18}
-                      height={72}
+                      height={76}
                       xLabel={graphXLabel}
                     />
                   </div>
                 )}
                 {row.comment && (
                   <div style={{
-                    padding: '0 10px 4px 16px',
+                    padding: '0 10px 0 16px',
+                    height: '16px',
+                    boxSizing: 'border-box',
+                    display: 'flex',
+                    alignItems: 'center',
                     color: theme.overlay0,
                     fontSize: '10px',
                     fontStyle: 'italic',
-                    lineHeight: 1.3,
                   }}>
                     {row.comment}
                   </div>
@@ -359,8 +363,10 @@ export const CanvasNode: React.FC<Props> = ({ node, selected, zoom }) => {
           })}
           {node.errors.map((err, i) => (
             <div key={`err-${i}`} style={{
-              padding: '4px 8px', color: theme.red, fontSize: '11px', fontWeight: 400,
+              padding: '0 8px', color: theme.red, fontSize: '11px', fontWeight: 400,
               borderTop: `1px solid ${theme.surface0}`,
+              height: '32px', boxSizing: 'border-box',
+              display: 'flex', alignItems: 'center',
             }}>
               {err}
             </div>

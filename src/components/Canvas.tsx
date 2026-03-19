@@ -210,8 +210,8 @@ export const Canvas: React.FC = () => {
 
   const nodeArray = Array.from(nodes.values());
 
-  // Generate dot grid pattern
-  const dotSpacing = 20;
+  // Generate dot grid pattern — matches GRID constant
+  const dotSpacing = 16;
 
   return (
     <div

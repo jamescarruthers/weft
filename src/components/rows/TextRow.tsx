@@ -22,7 +22,9 @@ export const TextRow: React.FC<Props> = ({ row, onChange }) => {
   return (
     <div style={{
       borderLeft: `3px solid ${stripe}`,
-      padding: '6px 10px',
+      padding: '0 10px',
+      height: '32px',
+      boxSizing: 'border-box',
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
